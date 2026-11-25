@@ -1,0 +1,2121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#10251f" />
+  <title>Badminton Queue</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #10251f;
+      --panel: #1a342d;
+      --panel-raised: #234239;
+      --accent: #a8e063;
+      --text: #f4f7ee;
+      --muted: #b7c7bc;
+      --line: rgba(255, 255, 255, .12);
+      --danger: #ff817c;
+      --success: #a8e063;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 15% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 34rem),
+        var(--page);
+    }
+    button, input, select { font: inherit; }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #172016;
+      background: var(--accent);
+      font-weight: 750;
+      cursor: pointer;
+      transition: transform .15s ease, filter .15s ease;
+    }
+    button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:disabled { cursor: not-allowed; filter: grayscale(.7); opacity: .55; transform: none; }
+    button.secondary {
+      color: var(--text);
+      background: var(--panel-raised);
+      border: 1px solid var(--line);
+    }
+    button.danger { color: #fff; background: #a94744; }
+    input, select {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 10px 11px;
+      color: var(--text);
+      background: rgba(0, 0, 0, .18);
+    }
+    select { cursor: pointer; }
+    input:focus, select:focus, button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    input[type="color"] { height: 42px; padding: 4px; cursor: pointer; }
+    label { display: grid; gap: 6px; color: var(--muted); font-size: .86rem; font-weight: 650; }
+    .page-wrap { width: min(1440px, 100%); margin: 0 auto; padding: 28px clamp(16px, 4vw, 48px) 52px; }
+    .masthead { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 25px; }
+    .primary-nav { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 18px; padding: 9px; border: 1px solid var(--line); border-radius: 13px; background: color-mix(in srgb, var(--page) 90%, transparent); backdrop-filter: blur(12px); }
+    .primary-nav a { padding: 8px 12px; border-radius: 9px; color: var(--muted); font-size: .86rem; font-weight: 750; text-decoration: none; }
+    .primary-nav a:hover, .primary-nav a:focus-visible { color: var(--text); background: var(--panel-raised); outline: none; }
+    .eyebrow { margin: 0 0 7px; color: var(--accent); font-size: .74rem; font-weight: 850; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.06; letter-spacing: -.045em; }
+    .subtitle { max-width: 650px; margin: 10px 0 0; color: var(--muted); line-height: 1.55; }
+    .master-badge { flex: 0 0 auto; padding: 11px 15px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: var(--panel); font-size: .9rem; }
+    .master-badge strong { color: var(--text); }
+    .notice { min-height: 0; margin: 0 0 14px; color: var(--accent); font-size: .92rem; }
+    .notice.error { color: var(--danger); }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 22px; }
+    .stat-card, .panel, .court-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--panel) 94%, transparent);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .12);
+    }
+    .stat-card { padding: 15px 18px; }
+    .stat-card span { display: block; color: var(--muted); font-size: .82rem; }
+    .stat-card strong { display: block; margin-top: 5px; font-size: 1.8rem; }
+    .main-grid { display: grid; grid-template-columns: minmax(280px, .8fr) minmax(0, 2fr); align-items: start; gap: 20px; }
+    .left-column, .right-column { display: grid; gap: 20px; min-width: 0; }
+    .panel { padding: 19px; }
+    .section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 15px; }
+    .section-heading h2, .section-heading h3 { margin: 0; letter-spacing: -.02em; }
+    .section-heading h2 { font-size: 1.22rem; }
+    .uppercase-title { text-transform: uppercase; }
+    .section-heading p { margin: 5px 0 0; color: var(--muted); font-size: .86rem; line-height: 1.4; }
+    .registration-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 10px; }
+    .registration-form label { min-width: 0; }
+    .registration-form label:first-child, .registration-form button { grid-column: 1 / -1; }
+    .registration-form input, .registration-form select { min-width: 0; }
+    .registration-form select, .player-level-select, .team-editor-side select {
+      border-color: var(--line);
+      color: var(--text);
+      background: linear-gradient(145deg, color-mix(in srgb, var(--panel) 95%, var(--accent)), var(--panel-raised));
+    }
+    .registration-form option, .player-level-select option, .team-editor-side option {
+      color: var(--text);
+      background: var(--panel-raised);
+    }
+    .player-list { display: grid; gap: 8px; margin-top: 15px; }
+    .scroll-list { max-height: 21rem; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+    .player-row { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 8px 10px; padding: 10px 11px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(145deg, color-mix(in srgb, var(--panel) 95%, var(--accent)), var(--panel-raised)); }
+    .player-row[hidden] { display: none; }
+    .player-card-main { display: grid; gap: 4px; min-width: 0; }
+    .player-tools { border-top: 1px solid var(--line); padding-top: 7px; }
+    .player-tools summary, .court-more-options summary, .score-options summary { width: fit-content; color: var(--accent); font-size: .78rem; font-weight: 750; cursor: pointer; }
+    .player-tools[open] summary, .court-more-options[open] summary, .score-options[open] summary { margin-bottom: 8px; }
+    .player-tools .player-stats-mini { margin: 0 0 8px; }
+    .player-tools .player-level-select { width: 100%; margin-bottom: 8px; }
+    .player-stats-mini { width: 100%; table-layout: fixed; border-spacing: 4px; margin: -4px; }
+    .player-stats-mini td { padding: 6px 3px; border: 1px solid var(--line); border-radius: 7px; background: rgba(0, 0, 0, .14); text-align: center; vertical-align: middle; }
+    .player-stats-mini span, .player-stats-mini strong { display: block; }
+    .player-stats-mini span { color: var(--muted); font-size: .61rem; font-weight: 650; line-height: 1.2; }
+    .player-stats-mini strong { margin-top: 3px; color: var(--accent); font-size: .82rem; font-weight: 850; line-height: 1.1; }
+    .player-profile { min-width: 0; padding: 2px 3px; }
+    .player-name { min-width: 0; overflow-wrap: anywhere; font-weight: 700; }
+    .player-meta { display: block; margin-top: 5px; color: var(--muted); font-size: .73rem; font-weight: 500; line-height: 1.4; }
+    .queue-position { display: inline-block; margin-left: 6px; padding: 2px 7px; border-radius: 999px; color: #172016; background: var(--accent); font-size: .68rem; font-weight: 850; vertical-align: 1px; }
+    .player-actions { display: flex; align-items: center; gap: 5px; }
+    .player-row .queue-move-button { min-width: 30px; padding: 6px 8px; font-size: .78rem; }
+    .queue-group-badge { display: inline-block; margin-left: 6px; padding: 2px 7px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: .67rem; font-weight: 800; vertical-align: 1px; }
+    .queue-group-badge.late { color: #172016; border-color: #f0c66e; background: #f0c66e; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .player-level-select { grid-column: 1; padding: 7px 8px; font-size: .78rem; }
+    .player-actions { grid-column: 1; justify-content: flex-end; flex-wrap: wrap; }
+    .player-row button { padding: 6px 9px; font-size: .76rem; }
+    .player-row [data-action="remove-player"] { padding: 6px 7px; }
+    .empty-state { padding: 18px 12px; border: 1px dashed var(--line); border-radius: 11px; color: var(--muted); text-align: center; font-size: .88rem; line-height: 1.45; }
+    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+    .settings-grid .wide { grid-column: 1 / -1; }
+    .settings-panel { padding: 0; }
+    .settings-summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 17px 19px; cursor: pointer; list-style: none; }
+    .settings-summary::-webkit-details-marker { display: none; }
+    .settings-summary strong, .settings-summary small { display: block; }
+    .settings-summary strong { font-size: 1.05rem; }
+    .settings-summary small { margin-top: 4px; color: var(--muted); font-size: .8rem; }
+    .settings-panel[open] .settings-summary { border-bottom: 1px solid var(--line); }
+    .settings-form-wrap { padding: 18px 19px 19px; }
+    .settings-chevron { color: var(--accent); font-size: 1.1rem; transition: transform .15s ease; }
+    .settings-panel[open] .settings-chevron { transform: rotate(180deg); }
+    .check-label { display: flex; align-items: center; gap: 9px; min-height: 42px; }
+    .check-label input { width: 17px; height: 17px; accent-color: var(--accent); }
+    .settings-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+    .rule-note { margin: 12px 0 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+    .courts-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; }
+    .court-card { min-width: 0; padding: 15px; }
+    .court-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .court-name { font-size: 1rem; font-weight: 850; }
+    .court-status { color: var(--muted); font-size: .72rem; font-weight: 750; text-transform: uppercase; letter-spacing: .08em; }
+    .skill-badge { display: inline-block; margin-left: 6px; padding: 2px 7px; border-radius: 999px; color: #172016; background: var(--accent); font-size: .67rem; font-weight: 800; vertical-align: 1px; }
+    .skill-badge.intermediate { color: #fff; background: #347eaa; }
+    .skill-badge.advance { color: #fff; background: #8d5bc0; }
+    .court-actions { display: flex; gap: 7px; margin-top: 12px; }
+    .court-actions button { flex: 1; padding: 8px 9px; font-size: .78rem; }
+    .match-ready-actions { justify-content: flex-end; }
+    .match-ready-actions button { flex: 0 1 auto; }
+    .court-primary-action { width: 100%; margin-top: 12px; }
+    .court-more-options { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+    .court-more-options .court-actions { margin-top: 9px; }
+    .category-draws { display: grid; gap: 7px; margin-top: 10px; }
+    .category-draws-label { margin: 0; color: var(--muted); font-size: .72rem; font-weight: 750; }
+    .category-draws-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .category-draws-buttons button { min-width: 0; padding: 8px 5px; font-size: .72rem; }
+    .team-editor {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+      border-radius: 10px;
+      color: var(--text);
+      background: linear-gradient(145deg, color-mix(in srgb, var(--panel) 95%, var(--accent)), var(--panel-raised));
+    }
+    .team-editor-help { margin: 0; color: var(--muted); font-size: .8rem; font-weight: 700; line-height: 1.45; }
+    .team-editor-side {
+      display: grid;
+      gap: 7px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      color: var(--text);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--panel-raised) 92%, var(--accent)), var(--panel));
+    }
+    .team-editor-side strong { color: var(--accent); font-size: .86rem; font-weight: 850; }
+    .team-editor-side select { font-weight: 650; }
+    .team-editor-actions { display: flex; gap: 7px; }
+    .team-editor-actions button { flex: 1; padding: 8px 9px; font-size: .78rem; }
+    .score-form {
+      display: grid;
+      gap: 9px;
+      margin-top: 13px;
+      padding: 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+      border-radius: 10px;
+      background: linear-gradient(145deg, color-mix(in srgb, var(--panel) 95%, var(--accent)), var(--panel-raised));
+    }
+    .score-set { display: grid; grid-template-columns: minmax(52px, 1fr) 64px 12px 64px; align-items: center; gap: 6px; }
+    .score-set label { display: contents; }
+    .set-title { color: var(--muted); font-size: .78rem; font-weight: 700; }
+    .score-set input { text-align: center; padding: 8px 4px; }
+    .score-dash { text-align: center; color: var(--muted); }
+    .score-set .set-winner-control { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .76rem; }
+    .score-set .set-winner-control select {
+      width: auto;
+      min-width: 150px;
+      padding: 6px 8px;
+      border-color: var(--line);
+      color: var(--text);
+      background: linear-gradient(145deg, color-mix(in srgb, var(--panel) 95%, var(--accent)), var(--panel-raised));
+      font-size: .76rem;
+    }
+    .score-set .set-winner-control option { color: var(--text); background: var(--panel-raised); }
+    .score-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .score-side { display: grid; gap: 4px; min-width: 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 9px; background: rgba(255,255,255,.045); }
+    .score-side-label { color: var(--accent); font-size: .72rem; font-weight: 850; text-transform: uppercase; letter-spacing: .07em; }
+    .score-side-players { display: grid; gap: 6px; min-width: 0; }
+    .score-player-entry { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; min-width: 0; }
+    .score-player-swap { display: grid; align-content: center; gap: 2px; width: 100%; min-width: 0; min-height: 50px; padding: 6px 8px; text-align: left; }
+    .score-player-swap-name { overflow-wrap: anywhere; font-size: .72rem; line-height: 1.2; }
+    .score-player-swap-meta { color: var(--muted); font-size: .6rem; font-weight: 600; }
+    .score-player-choices { width: 100%; min-width: 0; }
+    .score-player-choices summary { display: grid; place-items: center; width: 100%; min-height: 50px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--accent); background: rgba(0,0,0,.12); font-size: .72rem; font-weight: 750; cursor: pointer; list-style: none; text-align: center; }
+    .score-player-choices summary::-webkit-details-marker { display: none; }
+    .score-player-choices[open] { display: grid; gap: 5px; }
+    .score-player-choices select { width: 100%; min-height: 50px; padding: 8px; font-size: .72rem; }
+    .score-player-choices option { color: var(--text); background: var(--panel-raised); }
+    .score-player-no-options, .score-player-unavailable { color: var(--muted); font-size: .65rem; line-height: 1.35; }
+    .score-side-levels { color: var(--muted); font-size: .68rem; }
+    .third-set-row[hidden] { display: none; }
+    .score-help { margin: 0; color: var(--muted); font-size: .74rem; line-height: 1.4; }
+    .score-form > button { padding: 9px; }
+    .score-options { padding-top: 3px; }
+    .score-options .set-winner-control { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+    .score-options .set-winner-control select { flex: 1; }
+    .score-winner-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .score-winner-actions button { min-height: 46px; padding: 9px 8px; font-size: .82rem; }
+    .match-category-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 13px; }
+    .match-category-card { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.025); }
+    .match-category-card h4 { margin: 0 0 9px; font-size: .88rem; }
+    .recent-results-grid { margin-top: 0; gap: 9px; }
+    .recent-results-card { padding: 10px; }
+    .recent-results-card h4 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 7px; }
+    .recent-match-list { display: grid; gap: 6px; min-width: 0; }
+    .recent-match-item { display: grid; gap: 5px; min-width: 0; padding: 8px 9px; border: 1px solid var(--line); border-radius: 9px; background: rgba(255,255,255,.035); }
+    .recent-match-meta { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: .66rem; line-height: 1.3; }
+    .recent-match-meta time { flex: 0 0 auto; white-space: nowrap; }
+    .recent-match-lineups { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 8px; min-width: 0; }
+    .recent-match-side { display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: start; gap: 5px; min-width: 0; }
+    .recent-match-side-label { color: var(--muted); font-size: .62rem; font-weight: 750; text-transform: uppercase; }
+    .recent-match-team { min-width: 0; overflow-wrap: anywhere; font-size: .74rem; font-weight: 750; line-height: 1.3; }
+    .recent-match-score { grid-column: 2; grid-row: 1 / span 2; max-width: 100%; color: var(--accent); font-size: .73rem; font-weight: 850; line-height: 1.35; text-align: right; overflow-wrap: anywhere; }
+    .recent-match-result { color: var(--accent); font-size: .67rem; font-weight: 750; line-height: 1.3; overflow-wrap: anywhere; }
+    .match-history-slide-controls { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 7px; }
+    .match-history-slide-controls button { padding: 6px 10px; font-size: .74rem; }
+    .match-history-slide-status { min-width: 84px; color: var(--muted); font-size: .74rem; text-align: center; }
+    .recent-empty { padding: 10px 8px; font-size: .78rem; }
+    .session-overview-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    .session-overview-table th, .session-overview-table td { padding: 10px 11px; border-bottom: 1px solid var(--line); text-align: left; }
+    .session-overview-table th { width: 42%; color: var(--muted); font-weight: 650; }
+    .session-overview-table td { font-weight: 750; }
+    .session-overview-table tr:last-child th, .session-overview-table tr:last-child td { border-bottom: 0; }
+    .session-table-wrap { border: 1px solid var(--line); border-radius: 10px; overflow: auto; }
+    .session-category-note { margin: 8px 0 0; color: var(--muted); font-size: .75rem; line-height: 1.4; }
+    .archived-session { border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.035); }
+    .archive-summary { cursor: pointer; list-style: none; }
+    .archive-summary::-webkit-details-marker { display: none; }
+    .archive-summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .archive-toggle { color: var(--accent); font-size: .75rem; font-weight: 750; white-space: nowrap; }
+    .archived-session[open] .archive-toggle { transform: rotate(180deg); }
+    .archive-match-list { display: grid; gap: 8px; padding: 0 10px 10px; }
+    .text-button { padding: 5px 8px; font-size: .75rem; }
+    .session-status { padding: 10px 12px; border-radius: 10px; color: var(--muted); background: rgba(255,255,255,.045); font-size: .86rem; line-height: 1.45; }
+    .session-status strong { color: var(--text); }
+    .session-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .team-stats-list { display: grid; gap: 8px; margin-top: 13px; }
+    .team-standings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .team-standings-grid > .empty-state { grid-column: 1 / -1; }
+    .team-standing-rank { margin-right: 5px; color: var(--muted); font-size: .72rem; }
+    .team-standings-controls { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 2px; }
+    .team-standings-controls button { padding: 6px 10px; font-size: .74rem; }
+    .team-standings-slide-status { min-width: 84px; color: var(--muted); font-size: .74rem; text-align: center; }
+    .standings-subsection { margin-top: 18px; }
+    .standings-subsection > .section-heading { margin-bottom: 9px; }
+    .leader-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .leader-card { min-width: 0; padding: 10px 11px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.045); }
+    .leader-card.top-team { border-color: color-mix(in srgb, var(--accent) 70%, var(--line)); }
+    .leader-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+    .leader-card-label { color: var(--accent); font-size: .67rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+    .leader-slide-controls { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 9px; }
+    .leader-slide-controls button { padding: 6px 10px; font-size: .74rem; }
+    .leader-slide-status { min-width: 84px; color: var(--muted); font-size: .74rem; text-align: center; }
+    .team-stat-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 11px; border-radius: 10px; background: rgba(255,255,255,.045); }
+    .team-stat-row.top-team { outline: 1px solid var(--accent); }
+    .team-stat-name { font-size: .86rem; font-weight: 750; overflow-wrap: anywhere; }
+    .team-stat-meta { margin-top: 3px; color: var(--muted); font-size: .74rem; line-height: 1.4; }
+    .team-stat-rate { color: var(--accent); font-size: .9rem; font-weight: 850; white-space: nowrap; }
+    .player-stats-scroll { max-height: 21rem; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+    .player-stats-section { display: grid; gap: 8px; margin-top: 13px; }
+    .player-stats-section[hidden] { display: none; }
+    .player-stats-table { width: 100%; border-collapse: collapse; font-size: .82rem; text-align: right; }
+    .player-stats-table th, .player-stats-table td { padding: 10px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .player-stats-table th { position: sticky; top: 0; color: var(--muted); background: var(--panel-raised); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
+    .player-stats-table th:first-child, .player-stats-table td:first-child { text-align: left; }
+    .player-stats-table td:first-child { font-weight: 700; }
+    .footer-note { margin: 20px 0 0; color: var(--muted); font-size: .76rem; text-align: center; }
+    @media (max-width: 1050px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .left-column { grid-template-columns: 1fr 1fr; align-items: start; }
+    }
+    @media (max-width: 760px) {
+      .masthead { display: grid; }
+      .master-badge { justify-self: start; }
+      .courts-grid { grid-template-columns: 1fr; }
+      .match-category-grid { grid-template-columns: 1fr; }
+      .team-standings-grid { grid-template-columns: 1fr; }
+      .left-column { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 460px) {
+      .page-wrap { padding-top: 20px; }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+      .stat-card { padding: 12px; }
+      .stat-card strong { font-size: 1.45rem; }
+      .panel { padding: 15px; }
+      .settings-grid { grid-template-columns: 1fr; }
+      .settings-grid .wide { grid-column: auto; }
+      .settings-summary { padding: 15px; }
+      .settings-form-wrap { padding: 15px; }
+    }
+    @media (max-width: 360px) {
+      .registration-form { grid-template-columns: minmax(0, 1fr); }
+      .registration-form label:first-child, .registration-form button { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-wrap">
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">Badminton Club Court Desk</p>
+        <h1 id="eventTitle">Badminton Queue</h1>
+        <p class="subtitle">Meet players and Play with confidence. </p>
+      </div>
+      <div class="master-badge">Queue Master <strong id="masterNameDisplay">Queue Master</strong></div>
+    </header>
+
+    <nav class="primary-nav" aria-label="Main sections">
+      <a href="#queue-section">Player queue</a>
+      <a href="#courts-section">Courts</a>
+      <a href="#results-section">Results</a>
+      <a href="#settings-section">Settings</a>
+    </nav>
+
+    <p id="notice" class="notice" role="status" aria-live="polite"></p>
+    <section class="stats-grid" aria-label="Live player statistics">
+      <article class="stat-card"><span>Registered players</span><strong id="registeredCount">0</strong></article>
+      <article class="stat-card"><span>Players waiting</span><strong id="waitingCount">0</strong></article>
+      <article class="stat-card"><span>Matches completed</span><strong id="completedCount">0</strong></article>
+      <article class="stat-card"><span>Courts in play</span><strong id="activeCourtCount">0 / 3</strong></article>
+    </section>
+
+    <div class="main-grid">
+      <aside class="left-column">
+        <section id="queue-section" class="panel">
+          <div class="section-heading">
+            <div><h2 class="uppercase-title">Player queue</h2><p>Add players here, then start a match from an available court.</p></div>
+          </div>
+          <form id="registrationForm" class="registration-form">
+            <label>Player name
+              <input id="playerName" name="playerName" maxlength="36" autocomplete="off" placeholder="e.g. Alex Chen" required />
+            </label>
+            <label>Skill level
+              <select id="playerSkillInput" name="playerSkill" required>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advance">Advance</option>
+              </select>
+            </label>
+            <label>Queue group
+              <select id="playerQueueGroupInput" name="queueGroup" required>
+                <option value="auto">Automatic</option>
+                <option value="first">First Comers</option>
+                <option value="late">Late Comers</option>
+              </select>
+            </label>
+            <button type="submit">Add player</button>
+          </form>
+          <p id="queuePriorityNote" class="rule-note"></p>
+          <div id="playerList" class="player-list scroll-list" role="region" aria-label="Registered player queue, scroll to view more" tabindex="0"></div>
+        </section>
+
+        <details id="settings-section" class="panel settings-panel">
+          <summary class="settings-summary"><span><strong class="uppercase-title">Settings</strong><small>Event details, courts, scoring, and appearance</small></span><span class="settings-chevron" aria-hidden="true">⌄</span></summary>
+          <div class="settings-form-wrap">
+          <form id="settingsForm">
+            <div class="settings-grid">
+              <label class="wide">Event / queue name
+                <input id="eventNameInput" maxlength="48" />
+              </label>
+              <label class="wide">Queue Master name
+                <input id="masterNameInput" maxlength="36" />
+              </label>
+              <label>Court 1 name
+                <input id="courtName1Input" maxlength="24" />
+              </label>
+              <label>Court 2 name
+                <input id="courtName2Input" maxlength="24" />
+              </label>
+              <label class="wide">Court 3 name
+                <input id="courtName3Input" maxlength="24" />
+              </label>
+              <label>First-comer label
+                <input id="firstComerLabelInput" maxlength="32" required />
+              </label>
+              <label>First-comer icon
+                <input id="firstComerIconInput" maxlength="6" placeholder="🌅" aria-label="First-comer icon or emoji" />
+              </label>
+              <label>Late-comer label
+                <input id="lateComerLabelInput" maxlength="32" required />
+              </label>
+              <label>Late-comer icon
+                <input id="lateComerIconInput" maxlength="6" placeholder="⏰" aria-label="Late-comer icon or emoji" />
+              </label>
+              <label>Page background
+                <input id="pageColorInput" type="color" aria-label="Page background color" />
+              </label>
+              <label>Panel color
+                <input id="panelColorInput" type="color" aria-label="Panel color" />
+              </label>
+              <label>Accent color
+                <input id="accentColorInput" type="color" aria-label="Accent color" />
+              </label>
+              <label>Points to win
+                <input id="targetPointsInput" type="number" min="1" max="199" required />
+              </label>
+              <label>Win by
+                <input id="winByInput" type="number" min="1" max="20" required />
+              </label>
+              <label>Point cap (0 = none)
+                <input id="pointCapInput" type="number" min="0" max="208" required />
+              </label>
+              <label class="check-label wide">
+                <input id="thirdSetInput" type="checkbox" />
+                Play a deciding third set when teams split the first two
+              </label>
+            </div>
+            <div class="settings-actions"><button type="submit">Save setup</button></div>
+            <p class="rule-note">A set is won at the target with the configured lead. The point cap, when set, ends a set at the cap with a one-point lead. Setup and scores are saved in this browser.</p>
+          </form>
+          </div>
+        </details>
+      </aside>
+
+      <div class="right-column">
+        <section id="courts-section" class="panel">
+          <div class="section-heading">
+            <div><h2 class="uppercase-title">Courts</h2><p>Choose the next match or enter scores for a match in play.</p></div>
+          </div>
+          <div id="courtsGrid" class="courts-grid"></div>
+        </section>
+
+        <section id="results-section" class="panel">
+          <div class="section-heading">
+            <div><h2 class="uppercase-title">Recent results</h2><p>Each category has its own slides, with two matches shown at a time.</p></div>
+            <button id="clearHistoryButton" class="secondary text-button" type="button">Clear history</button>
+          </div>
+          <div id="historyList" class="match-category-grid recent-results-grid"></div>
+          <p class="session-category-note">Older saved results without skill-category data appear under Mixed / Unclassified.</p>
+        </section>
+
+        <section class="panel session-actions-panel" aria-label="Session actions">
+          <div class="section-heading"><div><h2 class="uppercase-title">Session actions</h2></div></div>
+          <div class="session-actions">
+            <button id="endSessionButton" class="danger" type="button">End session &amp; calculate results</button>
+            <button id="newSessionButton" class="secondary" type="button" hidden>Start new session</button>
+            <button id="clearSessionHistoryButton" class="secondary" type="button">Clear session history</button>
+          </div>
+        </section>
+
+        <details class="panel settings-panel">
+          <summary class="settings-summary"><span><strong class="uppercase-title">Session standings</strong><small>Session progress, team leaders, and match results</small></span><span class="settings-chevron" aria-hidden="true">⌄</span></summary>
+          <div class="settings-form-wrap">
+          <div class="standings-subsection">
+            <div class="section-heading"><div><h3 class="uppercase-title">Session progress</h3></div></div>
+            <div id="sessionStatus" class="session-table-wrap"></div>
+          </div>
+          <div class="standings-subsection">
+            <div class="section-heading"><div><h3 class="uppercase-title">Current leaders</h3></div></div>
+            <div id="currentLeadersList" class="session-table-wrap"></div>
+          </div>
+          <div class="standings-subsection">
+            <div class="section-heading"><div><h3 class="uppercase-title">Team standings</h3><p>Four teams per slide, ranked by session win rate.</p></div></div>
+            <div id="teamStatsList" class="team-stats-list team-standings-grid" role="group" aria-label="Session team standings"></div>
+          </div>
+          <div class="standings-subsection">
+            <div class="section-heading"><div><h3 class="uppercase-title">Matches by skill category</h3><p>Use each category's slide controls to browse two matches at a time. Mixed-skill matchups appear under Mixed.</p></div></div>
+            <div id="categoryHistoryStandings" class="match-category-grid recent-results-grid"></div>
+            <p class="session-category-note">Older saved results without skill-category data appear under Mixed / Unclassified.</p>
+          </div>
+          <div id="sessionArchiveList" class="team-stats-list scroll-list" role="region" aria-label="Previous sessions, scroll to view more" tabindex="0"></div>
+          <div id="randomTeamStatsSection" class="player-stats-section" hidden>
+            <div class="section-heading"><div><h3>Randomized team statistics</h3><p>Records for the randomly paired doubles teams in this session.</p></div></div>
+            <div id="randomTeamStatsList" class="player-stats-scroll" role="region" aria-label="Randomized team statistics, scroll to view more" tabindex="0"></div>
+          </div>
+          <div id="playerStatsSection" class="player-stats-section" hidden>
+            <div class="section-heading"><div><h3>Player statistics</h3><p>Individual records for this session.</p></div></div>
+            <div id="playerStatsList" class="player-stats-scroll" role="region" aria-label="Player statistics, scroll to view more" tabindex="0"></div>
+          </div>
+          <p class="rule-note">Win rate = wins divided by matches played. Draws count as played but not as wins. Tied top teams share the lead.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+    <p class="footer-note">This queue runs locally in your browser. Use the same device and browser to keep the saved player list and results.</p>
+  </main>
+  <script>
+const STORAGE_KEY = 'badmintonQueueState';
+const SKILL_LEVELS = ['Beginner', 'Intermediate', 'Advance'];
+const MATCH_HISTORY_CATEGORIES = [
+  { key: 'Advance', label: 'Advance pairs' },
+  { key: 'Intermediate', label: 'Intermediate pairs' },
+  { key: 'Beginner', label: 'Beginner pairs' },
+  { key: 'mixed', label: 'Mixed categories' }
+];
+const LEADER_CARDS_PER_SLIDE = 4;
+const TEAM_STANDINGS_PER_SLIDE = 4;
+const MATCHES_PER_HISTORY_SLIDE = 2;
+const DEFAULT_FIRST_COMER_LABEL = 'First Comers';
+const DEFAULT_LATE_COMER_LABEL = 'Late Comers';
+const DEFAULT_FIRST_COMER_ICON = '🌅';
+const DEFAULT_LATE_COMER_ICON = '⏰';
+const DEFAULT_STATE = {
+  settings: {
+    eventName: 'Badminton Queue',
+    masterName: 'Queue Master',
+    firstComerLabel: DEFAULT_FIRST_COMER_LABEL,
+    lateComerLabel: DEFAULT_LATE_COMER_LABEL,
+    firstComerIcon: DEFAULT_FIRST_COMER_ICON,
+    lateComerIcon: DEFAULT_LATE_COMER_ICON,
+    targetPoints: 21,
+    winBy: 2,
+    pointCap: 30,
+    thirdSet: true,
+    colors: { page: '#10251f', panel: '#1a342d', accent: '#a8e063' },
+    courtNames: ['Court 1', 'Court 2', 'Court 3']
+  },
+  players: [],
+  courts: [createEmptyCourt(), createEmptyCourt(), createEmptyCourt()],
+  history: [],
+  completedMatches: 0,
+  teamStats: {},
+  session: { active: true, startedAt: new Date().toISOString(), endedAt: null, firstComerMatchComplete: false },
+  pastSessions: []
+};
+
+function createEmptyCourt() {
+  return { match: null };
+}
+
+function sortPlayersBySkill(players) {
+  const skillOrder = new Map(SKILL_LEVELS.map((level, index) => [level, index]));
+  return [...players].sort((first, second) => (
+    skillOrder.get(first.skillLevel) - skillOrder.get(second.skillLevel)
+  ));
+}
+
+let loadError = false;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return structuredClone(DEFAULT_STATE);
+    return normalizeState(JSON.parse(raw));
+  } catch (error) {
+    console.error('Could not load the saved badminton queue.', error);
+    loadError = true;
+    return structuredClone(DEFAULT_STATE);
+  }
+}
+
+function normalizeState(saved) {
+  try {
+    const settings = { ...DEFAULT_STATE.settings, ...(saved.settings || {}) };
+    settings.colors = { ...DEFAULT_STATE.settings.colors, ...(saved.settings?.colors || {}) };
+    settings.courtNames = DEFAULT_STATE.settings.courtNames.map((name, index) => {
+      const savedName = saved.settings?.courtNames?.[index];
+      return typeof savedName === 'string' && savedName.trim() ? savedName : name;
+    });
+    settings.firstComerLabel = typeof saved.settings?.firstComerLabel === 'string'
+      && saved.settings.firstComerLabel.trim()
+      ? saved.settings.firstComerLabel.trim()
+      : DEFAULT_FIRST_COMER_LABEL;
+    settings.lateComerLabel = typeof saved.settings?.lateComerLabel === 'string'
+      && saved.settings.lateComerLabel.trim()
+      ? saved.settings.lateComerLabel.trim()
+      : DEFAULT_LATE_COMER_LABEL;
+    settings.firstComerIcon = typeof saved.settings?.firstComerIcon === 'string'
+      ? saved.settings.firstComerIcon.trim().slice(0, 6)
+      : DEFAULT_FIRST_COMER_ICON;
+    settings.lateComerIcon = typeof saved.settings?.lateComerIcon === 'string'
+      ? saved.settings.lateComerIcon.trim().slice(0, 6)
+      : DEFAULT_LATE_COMER_ICON;
+    const history = Array.isArray(saved.history) ? saved.history : [];
+    const firstComerQueueGames = Array.isArray(saved.players)
+      ? Math.max(0, ...saved.players
+        .filter((player) => player.queueGroup !== 'late')
+        .map((player) => Number.isInteger(player.queueGames) && player.queueGames >= 0
+          ? player.queueGames
+          : gamesPlayed(player)))
+      : 0;
+    const players = sortPlayersBySkill(Array.isArray(saved.players) ? saved.players.map((player) => {
+      const skillLevel = player.skillLevel === 'Advanced' ? 'Advance' : player.skillLevel;
+      return {
+        draws: 0,
+        ...player,
+        addedGames: Number.isInteger(player.addedGames) && player.addedGames >= 0
+          ? player.addedGames
+          : 0,
+        left: player.left === true,
+        queueGames: Number.isInteger(player.queueGames) && player.queueGames >= 0
+          ? player.queueGames
+          : Math.max(gamesPlayed(player), player.queueGroup === 'late' ? firstComerQueueGames : 0),
+        skipUntilCompletedMatches: Number.isInteger(player.skipUntilCompletedMatches)
+          ? player.skipUntilCompletedMatches
+          : null,
+        queueGroup: player.queueGroup === 'late' ? 'late' : 'first',
+        lateComerReleased: player.lateComerReleased === true
+          || (player.lateComerReleased === undefined && player.queueGroup === 'late'
+            && Number.isInteger(player.played) && player.played > 0),
+        skillLevel: SKILL_LEVELS.includes(skillLevel) ? skillLevel : 'Beginner'
+      };
+    }) : []);
+    const session = saved.session && typeof saved.session.active === 'boolean'
+      ? saved.session
+      : structuredClone(DEFAULT_STATE.session);
+    if (typeof session.firstComerMatchComplete !== 'boolean') {
+      session.firstComerMatchComplete = players.some((player) => (
+        player.queueGroup !== 'late' && gamesPlayed(player) > 0
+      ));
+    }
+    return {
+      settings,
+      players,
+      courts: Array.isArray(saved.courts)
+        ? DEFAULT_STATE.courts.map((court, index) => {
+          const savedCourt = saved.courts[index] || {};
+          return { match: savedCourt.match || null };
+        })
+        : structuredClone(DEFAULT_STATE.courts),
+      history,
+      completedMatches: Number.isInteger(saved.completedMatches) && saved.completedMatches >= 0
+        ? saved.completedMatches
+        : history.length,
+      teamStats: saved.teamStats && typeof saved.teamStats === 'object' ? saved.teamStats : {},
+      session,
+      pastSessions: Array.isArray(saved.pastSessions) ? saved.pastSessions : []
+    };
+  } catch (error) {
+    throw new Error('The saved queue data has an invalid format.', { cause: error });
+  }
+}
+
+let state = loadState();
+let noticeTimeout;
+let editingCourtIndex = -1;
+let manualDraftCourtIndex = -1;
+let currentLeaderSlide = 0;
+let currentTeamStandingsSlide = 0;
+const currentMatchHistorySlides = Object.fromEntries(
+  MATCH_HISTORY_CATEGORIES.map(({ key }) => [key, 0])
+);
+const archivedMatchHistorySlides = new Map();
+
+function getArchivedMatchHistorySlides(sessionIndex) {
+  if (!archivedMatchHistorySlides.has(sessionIndex)) {
+    archivedMatchHistorySlides.set(sessionIndex, Object.fromEntries(
+      MATCH_HISTORY_CATEGORIES.map(({ key }) => [key, 0])
+    ));
+  }
+  return archivedMatchHistorySlides.get(sessionIndex);
+}
+
+const elements = {
+  eventTitle: document.getElementById('eventTitle'),
+  masterNameDisplay: document.getElementById('masterNameDisplay'),
+  notice: document.getElementById('notice'),
+  registeredCount: document.getElementById('registeredCount'),
+  waitingCount: document.getElementById('waitingCount'),
+  completedCount: document.getElementById('completedCount'),
+  activeCourtCount: document.getElementById('activeCourtCount'),
+  registrationForm: document.getElementById('registrationForm'),
+  playerName: document.getElementById('playerName'),
+  playerSkillInput: document.getElementById('playerSkillInput'),
+  playerQueueGroupInput: document.getElementById('playerQueueGroupInput'),
+  queuePriorityNote: document.getElementById('queuePriorityNote'),
+  playerList: document.getElementById('playerList'),
+  settingsForm: document.getElementById('settingsForm'),
+  eventNameInput: document.getElementById('eventNameInput'),
+  masterNameInput: document.getElementById('masterNameInput'),
+  firstComerLabelInput: document.getElementById('firstComerLabelInput'),
+  firstComerIconInput: document.getElementById('firstComerIconInput'),
+  lateComerLabelInput: document.getElementById('lateComerLabelInput'),
+  lateComerIconInput: document.getElementById('lateComerIconInput'),
+  courtNameInputs: [1, 2, 3].map((number) => document.getElementById(`courtName${number}Input`)),
+  pageColorInput: document.getElementById('pageColorInput'),
+  panelColorInput: document.getElementById('panelColorInput'),
+  accentColorInput: document.getElementById('accentColorInput'),
+  targetPointsInput: document.getElementById('targetPointsInput'),
+  winByInput: document.getElementById('winByInput'),
+  pointCapInput: document.getElementById('pointCapInput'),
+  thirdSetInput: document.getElementById('thirdSetInput'),
+  courtsGrid: document.getElementById('courtsGrid'),
+  historyList: document.getElementById('historyList'),
+  clearHistoryButton: document.getElementById('clearHistoryButton'),
+  sessionStatus: document.getElementById('sessionStatus'),
+  currentLeadersList: document.getElementById('currentLeadersList'),
+  teamStatsList: document.getElementById('teamStatsList'),
+  categoryHistoryStandings: document.getElementById('categoryHistoryStandings'),
+  sessionArchiveList: document.getElementById('sessionArchiveList'),
+  endSessionButton: document.getElementById('endSessionButton'),
+  newSessionButton: document.getElementById('newSessionButton'),
+  clearSessionHistoryButton: document.getElementById('clearSessionHistoryButton'),
+  randomTeamStatsSection: document.getElementById('randomTeamStatsSection'),
+  randomTeamStatsList: document.getElementById('randomTeamStatsList'),
+  playerStatsSection: document.getElementById('playerStatsSection'),
+  playerStatsList: document.getElementById('playerStatsList')
+};
+
+function setNotice(message, isError = false) {
+  if (!elements.notice) return;
+  elements.notice.textContent = message;
+  elements.notice.classList.toggle('error', isError);
+  clearTimeout(noticeTimeout);
+  if (message) {
+    noticeTimeout = setTimeout(() => {
+      elements.notice.textContent = '';
+      elements.notice.classList.remove('error');
+    }, 4500);
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.error('Could not save the badminton queue.', error);
+    setNotice('Could not save changes in this browser. Check available storage space.', true);
+    return false;
+  }
+  return true;
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[character]);
+}
+
+function applySettings() {
+  document.documentElement.style.setProperty('--page', state.settings.colors.page);
+  document.documentElement.style.setProperty('--panel', state.settings.colors.panel);
+  document.documentElement.style.setProperty('--accent', state.settings.colors.accent);
+  elements.eventTitle.textContent = state.settings.eventName;
+  document.title = `${state.settings.eventName} | Badminton Queue`;
+  elements.masterNameDisplay.textContent = state.settings.masterName;
+  elements.playerQueueGroupInput.options[1].textContent = state.settings.firstComerLabel;
+  elements.playerQueueGroupInput.options[2].textContent = state.settings.lateComerLabel;
+  elements.firstComerLabelInput.value = state.settings.firstComerLabel;
+  elements.firstComerIconInput.value = state.settings.firstComerIcon;
+  elements.lateComerLabelInput.value = state.settings.lateComerLabel;
+  elements.lateComerIconInput.value = state.settings.lateComerIcon;
+
+  elements.eventNameInput.value = state.settings.eventName;
+  elements.masterNameInput.value = state.settings.masterName;
+  elements.courtNameInputs.forEach((input, index) => {
+    input.value = state.settings.courtNames[index] || `Court ${index + 1}`;
+  });
+  elements.pageColorInput.value = state.settings.colors.page;
+  elements.panelColorInput.value = state.settings.colors.panel;
+  elements.accentColorInput.value = state.settings.colors.accent;
+  elements.targetPointsInput.value = state.settings.targetPoints;
+  elements.winByInput.value = state.settings.winBy;
+  elements.pointCapInput.value = state.settings.pointCap;
+  elements.thirdSetInput.checked = state.settings.thirdSet;
+}
+
+function playerById(id) {
+  return state.players.find((player) => player.id === id);
+}
+
+function getOccupiedPlayerIds(exceptCourtIndex = -1) {
+  return new Set(state.courts.flatMap((court, index) => (
+    index === exceptCourtIndex || !court.match ? [] : court.match.teams.flatMap((team) => team.playerIds)
+  )));
+}
+
+function getAvailablePlayers(courtIndex) {
+  const occupied = getOccupiedPlayerIds(courtIndex);
+  return state.players.filter((player) => (
+    !occupied.has(player.id) && !player.left && !isTemporarilyUnavailable(player)
+  ));
+}
+
+function getManualCourtPlayers(courtIndex) {
+  const occupied = getOccupiedPlayerIds(courtIndex);
+  return state.players.filter((player) => (
+    !occupied.has(player.id) && (player.left || !isTemporarilyUnavailable(player))
+  ));
+}
+
+function getAvailableReplacementCandidates(player, courtIndex, match) {
+  if (!player || !match) return [];
+  const matchPlayerIds = new Set(match.teams.flatMap((team) => team.playerIds));
+  return getManualCourtPlayers(courtIndex)
+    .filter((candidate) => (
+      !matchPlayerIds.has(candidate.id)
+      && !candidate.left
+      && !isTemporarilyUnavailable(candidate)
+    ))
+    .sort((first, second) => (
+      gamesPlayed(first) - gamesPlayed(second)
+      || queueGames(first) - queueGames(second)
+      || state.players.indexOf(first) - state.players.indexOf(second)
+    ));
+}
+
+function getEligibleReplacements(player, courtIndex, match) {
+  return getAvailableReplacementCandidates(player, courtIndex, match)
+    .filter((candidate) => (
+      candidate.skillLevel === player.skillLevel
+      && gamesPlayed(candidate) < gamesPlayed(player)
+    ));
+}
+
+function isTemporarilyUnavailable(player) {
+  return Number.isInteger(player.skipUntilCompletedMatches)
+    && state.completedMatches < player.skipUntilCompletedMatches;
+}
+
+function queueOrder(players) {
+  return [...players].sort((first, second) => (
+    queueGames(first) - queueGames(second)
+    || state.players.indexOf(first) - state.players.indexOf(second)
+  ));
+}
+
+function selectQueuePlayers(players) {
+  return queueOrder(players).slice(0, 4);
+}
+
+function teamLevelSummary(team) {
+  return team.playerIds.map((id) => playerById(id)?.skillLevel || 'Unknown').join(' + ');
+}
+
+function renderPlayers() {
+  const occupied = getOccupiedPlayerIds();
+  const waitingPlayers = queueOrder(state.players.filter((player) => (
+    !occupied.has(player.id) && !player.left && !isTemporarilyUnavailable(player)
+  )));
+  const queuePositions = new Map(waitingPlayers.map((player, index) => [player.id, index + 1]));
+  elements.queuePriorityNote.textContent = 'Queue positions update after each match. #1 is next by rotation.';
+  elements.playerList.innerHTML = state.players.length
+    ? state.players.map((player, index) => `
+      <div class="player-row">
+        <div class="player-card-main player-profile">
+          <div class="player-name">${escapeHtml(player.name)}<span class="skill-badge ${player.skillLevel.toLowerCase()}">${escapeHtml(player.skillLevel)}</span><span class="queue-group-badge ${player.queueGroup === 'late' ? 'late' : ''}">${escapeHtml(player.queueGroup === 'late' ? state.settings.lateComerIcon : state.settings.firstComerIcon)} ${escapeHtml(player.queueGroup === 'late' ? state.settings.lateComerLabel : state.settings.firstComerLabel)}</span></div>
+          <span class="player-meta">${occupied.has(player.id) ? 'On court' : player.left ? 'Left' : isTemporarilyUnavailable(player) ? 'Sitting out next turn' : `Waiting`}<span class="queue-position" ${queuePositions.has(player.id) ? '' : 'hidden'}>${queuePositions.has(player.id) ? `#${queuePositions.get(player.id)} in queue` : ''}</span></span>
+          <span class="player-meta">${gamesPlayed(player)} played</span>
+        </div>
+        <details class="player-tools">
+          <summary>Manage player</summary>
+          <table class="player-stats-mini" aria-label="Statistics for ${escapeHtml(player.name)}">
+            <tbody>
+              <tr>
+                <td><span>Wins</span><strong>${Number.isInteger(player.wins) ? player.wins : 0}</strong></td>
+                <td><span>Losses</span><strong>${Number.isInteger(player.losses) ? player.losses : 0}</strong></td>
+                <td><span>Draws</span><strong>${Number.isInteger(player.draws) ? player.draws : 0}</strong></td>
+              </tr>
+              <tr>
+                <td><span>Played</span><strong>${gamesPlayed(player)}</strong></td>
+                <td colspan="2"><span>Win rate</span><strong>${formatWinRate(player.wins, gamesPlayed(player))}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+          <label for="player-level-${escapeHtml(player.id)}">Skill level</label>
+          <select id="player-level-${escapeHtml(player.id)}" class="player-level-select" data-action="set-player-level" data-player-id="${escapeHtml(player.id)}" ${state.session.active ? '' : 'disabled'}>
+            ${SKILL_LEVELS.map((level) => `<option value="${level}" ${player.skillLevel === level ? 'selected' : ''}>${level}</option>`).join('')}
+          </select>
+          <div class="player-actions">
+            <button class="secondary queue-move-button" type="button" data-action="move-player-up" data-player-id="${escapeHtml(player.id)}" aria-label="Move ${escapeHtml(player.name)} earlier among ${escapeHtml(player.skillLevel)} players" title="Move earlier within ${escapeHtml(player.skillLevel)} players" ${index === 0 || state.players[index - 1].skillLevel !== player.skillLevel || !state.session.active ? 'disabled' : ''}>↑</button>
+            <button class="secondary queue-move-button" type="button" data-action="move-player-down" data-player-id="${escapeHtml(player.id)}" aria-label="Move ${escapeHtml(player.name)} later among ${escapeHtml(player.skillLevel)} players" title="Move later within ${escapeHtml(player.skillLevel)} players" ${index === state.players.length - 1 || state.players[index + 1].skillLevel !== player.skillLevel || !state.session.active ? 'disabled' : ''}>↓</button>
+            <button class="secondary" type="button" data-action="credit-game" data-player-id="${escapeHtml(player.id)}" ${occupied.has(player.id) || !state.session.active ? 'disabled title="Player must be off court in an active session"' : ''}>Record other-court game</button>
+            <button class="secondary" type="button" data-action="undo-added-game" data-player-id="${escapeHtml(player.id)}" ${!player.addedGames || occupied.has(player.id) || !state.session.active ? 'disabled title="No removable added game, or player is on court"' : ''}>Undo recorded game</button>
+            <button class="secondary" type="button" data-action="skip-turn" data-player-id="${escapeHtml(player.id)}" aria-pressed="${isTemporarilyUnavailable(player)}" ${occupied.has(player.id) || !state.session.active ? 'disabled title="Player must be off court in an active session"' : ''}>${isTemporarilyUnavailable(player) ? 'Cancel skip' : 'Skip next turn'}</button>
+            <button class="secondary" type="button" data-action="toggle-player-left" data-player-id="${escapeHtml(player.id)}" aria-pressed="${player.left}" ${occupied.has(player.id) || !state.session.active ? 'disabled title="Player must be off court in an active session"' : ''}>${player.left ? 'Return to queue' : 'Mark left'}</button>
+            <button class="secondary" type="button" data-action="remove-player" data-player-id="${escapeHtml(player.id)}" ${occupied.has(player.id) ? 'disabled title="Player is currently assigned to a court"' : ''}>Remove</button>
+          </div>
+        </details>
+      </div>
+    `).join('')
+    : '<div class="empty-state">No players registered yet. Add players above to start a random doubles draw.</div>';
+}
+
+function teamNames(team) {
+  return team.playerIds.map((id) => playerById(id)?.name || 'Removed player').join(' & ');
+}
+
+function formatWinRate(wins, played) {
+  return `${played ? Math.round((wins / played) * 100) : 0}%`;
+}
+
+function gamesPlayed(player) {
+  return Number.isInteger(player.played) && player.played >= 0 ? player.played : 0;
+}
+
+function queueGames(player) {
+  return Number.isInteger(player.queueGames) && player.queueGames >= 0
+    ? player.queueGames
+    : gamesPlayed(player);
+}
+
+function renderMatchPlayer(playerId, courtIndex, teamSide, playerSlot, match) {
+  const player = playerById(playerId);
+  if (!player) return '<span class="score-player-entry"><span class="score-player-unavailable">Removed player</span></span>';
+
+  const manualCandidates = getAvailableReplacementCandidates(player, courtIndex, match);
+  const automaticReplacement = getEligibleReplacements(player, courtIndex, match)[0];
+  const played = gamesPlayed(player);
+  const playedLabel = `${played} ${played === 1 ? 'match' : 'matches'}`;
+  const playerName = escapeHtml(player.name);
+  const options = manualCandidates.map((candidate) => (
+    `<option value="${escapeHtml(candidate.id)}">${escapeHtml(candidate.name)} · ${escapeHtml(candidate.skillLevel)} · ${gamesPlayed(candidate)} ${gamesPlayed(candidate) === 1 ? 'match' : 'matches'}</option>`
+  )).join('');
+  const choiceId = `replacement-${courtIndex}-${teamSide}-${playerSlot}`;
+
+  return `
+    <div class="score-player-entry">
+      <button class="secondary score-player-swap" type="button" data-action="auto-replace-player" data-court-index="${courtIndex}" data-team-side="${teamSide}" data-player-slot="${playerSlot}" aria-label="Auto-swap ${playerName} for the lowest-played eligible player" title="${automaticReplacement ? `Auto-swap for ${escapeHtml(automaticReplacement.name)} (${gamesPlayed(automaticReplacement)} played)` : `No lower-played waiting ${escapeHtml(player.skillLevel)} players available`}" ${automaticReplacement && state.session.active ? '' : 'disabled'}>
+        <span class="score-player-swap-name">${playerName}</span>
+        <span class="score-player-swap-meta">${playedLabel}</span>
+      </button>
+      ${state.session.active && manualCandidates.length ? `
+        <details class="score-player-choices">
+          <summary aria-label="Choose a replacement for ${playerName}">Choose</summary>
+          <select id="${choiceId}" data-action="choose-replacement-player" data-court-index="${courtIndex}" data-team-side="${teamSide}" data-player-slot="${playerSlot}" aria-label="Choose any waiting player for ${playerName}">
+            <option value="">Select a waiting player</option>
+            ${options}
+          </select>
+        </details>
+      ` : `<span class="score-player-no-options">${state.session.active ? 'No eligible waiting players' : 'Session ended'}</span>`}
+    </div>`;
+}
+
+function scoreFields(court, courtIndex) {
+  const thirdRow = court.match.thirdSetVisible ? '' : ' hidden';
+  const makeRow = (setNumber, label, extraClass = '') => `
+    <div class="score-set ${extraClass}"${extraClass ? thirdRow : ''}>
+      <span class="set-title">${label}</span>
+      <input type="number" min="0" inputmode="numeric" aria-label="${label} side A score" data-score-set="${setNumber}" data-score-team="0" />
+      <span class="score-dash">–</span>
+      <input type="number" min="0" inputmode="numeric" aria-label="${label} side B score" data-score-set="${setNumber}" data-score-team="1" />
+    </div>`;
+  return `
+    <form class="score-form" data-score-form="${courtIndex}" novalidate>
+      <div class="score-sides" aria-label="Scoring sides">
+        ${court.match.teams.map((team, side) => `
+          <div class="score-side">
+            <span class="score-side-label">Side ${side === 0 ? 'A' : 'B'}</span>
+            <div class="score-side-players">${team.playerIds.map((id, slot) => (
+              renderMatchPlayer(id, courtIndex, side, slot, court.match)
+            )).join('')}</div>
+            <span class="score-side-levels">${escapeHtml(teamLevelSummary(team))}</span>
+          </div>
+        `).join('')}
+      </div>
+      <p class="score-help score-player-help">Tap a player to auto-swap with the lowest-played available player in the same skill category, or choose any eligible waiting player manually.</p>
+      ${makeRow(1, 'Set 1')}
+      ${makeRow(2, 'Set 2')}
+      ${makeRow(3, 'Set 3', 'third-set-row')}
+      <p class="score-help">Enter both set scores. A deciding third set appears if the first two sets are split.</p>
+      <details class="score-options">
+        <summary>Other result options</summary>
+        <p class="score-help">Use these only when the score is unavailable or needs a manual correction.</p>
+        ${[1, 2, 3].map((setNumber) => `
+          <label class="set-winner-control">Set ${setNumber} winner override
+            <select aria-label="Set ${setNumber} winner override" data-set-winner="${setNumber}">
+              <option value="">Use scores</option>
+              <option value="0">Side A</option>
+              <option value="1">Side B</option>
+            </select>
+          </label>
+        `).join('')}
+      </details>
+      <p class="score-help">Or record a winner without entering scores:</p>
+      <div class="score-winner-actions" aria-label="Record match winner without scores">
+        <button type="button" data-action="declare-winner" data-court-index="${courtIndex}" data-winner-side="0" aria-label="Record Side A as the winner">Side A Won</button>
+        <button class="secondary" type="button" data-action="declare-winner" data-court-index="${courtIndex}" data-winner-side="1" aria-label="Record Side B as the winner">Side B Won</button>
+      </div>
+      <button type="submit">Finish match</button>
+    </form>`;
+}
+
+function renderTeamEditor(match, courtIndex) {
+  const available = queueOrder(getManualCourtPlayers(courtIndex));
+  const currentPlayerIds = new Set(match.teams.flatMap((team) => team.playerIds));
+  const waitingCount = available.filter((player) => (
+    !currentPlayerIds.has(player.id) && !player.left && !isTemporarilyUnavailable(player)
+  )).length;
+  const options = available.map((player) => (
+    `<option value="${escapeHtml(player.id)}">${escapeHtml(player.name)} · ${escapeHtml(player.skillLevel)} · ${gamesPlayed(player)} played${currentPlayerIds.has(player.id) ? ' · In this match' : player.left ? ' · LEFT (manual only)' : isTemporarilyUnavailable(player) ? ' · Sitting out' : ' · Waiting'}</option>`
+  )).join('');
+  const waitingMessage = waitingCount
+    ? `${waitingCount} waiting ${waitingCount === 1 ? 'player is' : 'players are'} available to swap in.`
+    : 'No other eligible players are waiting to swap in.';
+  return `
+    <div class="team-editor" data-team-editor="${courtIndex}">
+      <p class="team-editor-help">${waitingMessage} Choose four players for the two pairs. Players due to play sooner appear first. Replaced players are freed from this court; left or sit-out status is unchanged.</p>
+      ${match.teams.map((team, side) => `
+        <div class="team-editor-side">
+          <strong>Side ${side === 0 ? 'A' : 'B'}</strong>
+          ${team.playerIds.map((playerId, slot) => `
+            <label for="team-${courtIndex}-${side}-${slot}">Player ${slot + 1}</label>
+            <select id="team-${courtIndex}-${side}-${slot}" data-team-slot="${side}-${slot}" required>
+              <option value="">Select a player</option>
+              ${options.replace(
+                `value="${escapeHtml(playerId)}"`,
+                `value="${escapeHtml(playerId)}" selected`
+              )}
+            </select>
+          `).join('')}
+        </div>
+      `).join('')}
+      <div class="team-editor-actions">
+        <button type="button" data-action="save-teams" data-court-index="${courtIndex}">Save lineup</button>
+        <button class="secondary" type="button" data-action="cancel-edit" data-court-index="${courtIndex}">Cancel</button>
+      </div>
+    </div>`;
+}
+
+function renderCourts() {
+  const occupied = getOccupiedPlayerIds();
+  elements.courtsGrid.innerHTML = state.courts.map((court, index) => {
+    const courtName = state.settings.courtNames[index] || `Court ${index + 1}`;
+    const match = court.match;
+    if (!match) {
+      const availableTotal = state.players.filter((player) => !occupied.has(player.id));
+      const availablePlayers = availableTotal.filter((player) => !player.left && !isTemporarilyUnavailable(player));
+      const eligibleCount = availablePlayers.length;
+      const leftCount = availableTotal.filter((player) => player.left).length;
+      const skippedCount = availableTotal.filter((player) => !player.left && isTemporarilyUnavailable(player)).length;
+      const manualCount = getManualCourtPlayers(index).length;
+      return `
+        <article class="court-card">
+          <div class="court-top"><span class="court-name">${escapeHtml(courtName)}</span><span class="court-status">${state.session.active ? 'Ready' : 'Session ended'}</span></div>
+          <div class="empty-state">${eligibleCount} ready for the next draw · ${skippedCount} sitting out · ${leftCount} left · 4 needed for doubles.</div>
+          <button class="court-primary-action" type="button" data-action="draw-match" data-court-index="${index}" ${eligibleCount < 4 || !state.session.active ? 'disabled' : ''}>Draw next match (${eligibleCount} ready)</button>
+          <details class="court-more-options">
+            <summary>More draw options</summary>
+          <div class="court-actions">
+            <button class="secondary" type="button" data-action="balanced-match" data-court-index="${index}" ${eligibleCount < 4 || !state.session.active ? 'disabled' : ''}>Balanced pull</button>
+            <button class="secondary" type="button" data-action="manual-match" data-court-index="${index}" ${manualCount < 4 || !state.session.active ? 'disabled' : ''}>Set manually</button>
+          </div>
+          <div class="category-draws" aria-label="Skill category match draws">
+            <p class="category-draws-label">Draw four players from one skill category</p>
+            <div class="category-draws-buttons">
+              ${SKILL_LEVELS.slice().reverse().map((skillLevel) => {
+                const categoryCount = availablePlayers.filter((player) => player.skillLevel === skillLevel).length;
+                return `<button class="secondary" type="button" data-action="category-match" data-court-index="${index}" data-skill-level="${skillLevel}" ${categoryCount < 4 || !state.session.active ? 'disabled' : ''}>${skillLevel} (${categoryCount})</button>`;
+              }).join('')}
+            </div>
+          </div>
+          </details>
+        </article>`;
+    }
+
+    if (editingCourtIndex === index) {
+      return `
+        <article class="court-card">
+          <div class="court-top"><span class="court-name">${escapeHtml(courtName)}</span><span class="court-status">Set manually</span></div>
+          ${renderTeamEditor(match, index)}
+        </article>`;
+    }
+
+    return `
+      <article class="court-card">
+        <div class="court-top">
+          <span class="court-name">${escapeHtml(courtName)}</span>
+          <span class="court-status">Match ready</span>
+        </div>
+        <div class="court-actions match-ready-actions">
+          <button class="danger" type="button" data-action="cancel-match" data-court-index="${index}">Cancel</button>
+        </div>
+        ${scoreFields(court, index)}
+      </article>`;
+  }).join('');
+  updateScoreRowVisibility();
+}
+
+function renderHistory() {
+  renderMatchHistoryViews();
+}
+
+function getMatchSkillCategory(match) {
+  const skillLevels = match.teams.flatMap((team) => (
+    team.playerIds.map((id) => playerById(id)?.skillLevel)
+  ));
+  return skillLevels.length === 4
+    && SKILL_LEVELS.includes(skillLevels[0])
+    && skillLevels.every((skillLevel) => skillLevel === skillLevels[0])
+    ? skillLevels[0]
+    : 'mixed';
+}
+
+function getMatchHistoryCategory(match) {
+  return MATCH_HISTORY_CATEGORIES.some((category) => category.key === match.matchCategory)
+    ? match.matchCategory
+    : 'mixed';
+}
+
+function renderRecentMatchItem(match) {
+  const completedAt = new Date(match.completedAt);
+  const shortDate = completedAt.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+  return `
+    <article class="recent-match-item">
+      <div class="recent-match-meta">
+        <span>${escapeHtml(match.courtName)}</span>
+        <time datetime="${escapeHtml(String(match.completedAt || ''))}" title="${escapeHtml(completedAt.toLocaleString())}">${escapeHtml(shortDate)}</time>
+      </div>
+      <div class="recent-match-lineups">
+        <div class="recent-match-side"><span class="recent-match-side-label">A</span><span class="recent-match-team">${escapeHtml(match.teamA)}</span></div>
+        <strong class="recent-match-score">${escapeHtml(match.score)}</strong>
+        <div class="recent-match-side"><span class="recent-match-side-label">B</span><span class="recent-match-team">${escapeHtml(match.teamB)}</span></div>
+      </div>
+      <div class="recent-match-result">${escapeHtml(match.result)}</div>
+    </article>`;
+}
+
+function renderMatchCategoryCards(matches, slideState = currentMatchHistorySlides, slideContext = 'current') {
+  const categories = MATCH_HISTORY_CATEGORIES.map(({ key, label }) => ({
+    key,
+    label,
+    matches: matches.filter((match) => getMatchHistoryCategory(match) === key)
+  }));
+  return categories.map(({ key, label, matches: categoryMatches }) => {
+    const slideCount = Math.max(1, Math.ceil(categoryMatches.length / MATCHES_PER_HISTORY_SLIDE));
+    const currentSlide = Math.min(slideState[key], slideCount - 1);
+    slideState[key] = currentSlide;
+    const start = currentSlide * MATCHES_PER_HISTORY_SLIDE;
+    const slideMatches = categoryMatches.slice(start, start + MATCHES_PER_HISTORY_SLIDE);
+    const slideControls = slideCount > 1
+      ? `<div class="match-history-slide-controls" role="group" aria-label="${label} slides">
+          <button class="secondary" type="button" data-match-history-context="${slideContext}" data-match-history-category="${key}" data-match-history-slide="-1" aria-label="Previous ${label} slide" ${currentSlide === 0 ? 'disabled' : ''}>Previous</button>
+          <span class="match-history-slide-status" aria-live="polite">Slide ${currentSlide + 1} of ${slideCount}</span>
+          <button class="secondary" type="button" data-match-history-context="${slideContext}" data-match-history-category="${key}" data-match-history-slide="1" aria-label="Next ${label} slide" ${currentSlide === slideCount - 1 ? 'disabled' : ''}>Next</button>
+        </div>`
+      : '';
+    return `
+      <section class="match-category-card recent-results-card">
+        <h4><span>${label}</span><span class="team-stat-meta">${categoryMatches.length}</span></h4>
+        ${slideMatches.length
+          ? `<div class="recent-match-list">${slideMatches.map(renderRecentMatchItem).join('')}</div>`
+          : '<div class="empty-state recent-empty">No matches yet.</div>'}
+        ${slideControls}
+      </section>`;
+  }).join('');
+}
+
+function renderMatchHistoryViews() {
+  const markup = renderMatchCategoryCards(state.history);
+  elements.historyList.innerHTML = markup;
+  elements.categoryHistoryStandings.innerHTML = markup;
+}
+
+function getRankedTeamStats() {
+  return Object.values(state.teamStats)
+    .filter((team) => team.played > 0)
+    .map((team) => ({ ...team, winRate: team.wins / team.played }))
+    .sort((first, second) => second.winRate - first.winRate || second.played - first.played || first.names.join('').localeCompare(second.names.join('')));
+}
+
+function renderSession() {
+  const rankedTeams = getRankedTeamStats();
+  const leadingTeams = rankedTeams.length
+    ? rankedTeams.filter((team) => team.winRate === rankedTeams[0].winRate)
+    : [];
+  const teamStandingsSlideCount = Math.max(1, Math.ceil(rankedTeams.length / TEAM_STANDINGS_PER_SLIDE));
+  currentTeamStandingsSlide = Math.min(currentTeamStandingsSlide, teamStandingsSlideCount - 1);
+  const firstTeamIndex = currentTeamStandingsSlide * TEAM_STANDINGS_PER_SLIDE;
+  const visibleRankedTeams = rankedTeams.slice(
+    firstTeamIndex,
+    firstTeamIndex + TEAM_STANDINGS_PER_SLIDE
+  );
+  const leaderSlideCount = Math.ceil(leadingTeams.length / LEADER_CARDS_PER_SLIDE);
+  currentLeaderSlide = Math.min(currentLeaderSlide, Math.max(0, leaderSlideCount - 1));
+  const visibleLeadingTeams = leadingTeams.slice(
+    currentLeaderSlide * LEADER_CARDS_PER_SLIDE,
+    (currentLeaderSlide + 1) * LEADER_CARDS_PER_SLIDE
+  );
+  const activeCourts = state.courts.filter((court) => court.match).length;
+  const sessionStarted = state.session.startedAt
+    ? new Date(state.session.startedAt).toLocaleString()
+    : 'Time unavailable';
+  const sessionEnded = state.session.endedAt
+    ? new Date(state.session.endedAt).toLocaleString()
+    : null;
+  elements.sessionStatus.innerHTML = `
+    <table class="session-overview-table">
+      <tbody>
+        <tr><th scope="row">Status</th><td>${state.session.active ? 'In progress' : 'Ended'}</td></tr>
+        <tr><th scope="row">Completed matches this session</th><td>${state.completedMatches}</td></tr>
+        <tr><th scope="row">Courts currently in play</th><td>${activeCourts} / ${state.courts.length}</td></tr>
+        <tr><th scope="row">${sessionEnded ? 'Session ended' : 'Session started'}</th><td>${escapeHtml(sessionEnded || sessionStarted)}</td></tr>
+      </tbody>
+    </table>`;
+
+  elements.currentLeadersList.innerHTML = leadingTeams.length
+    ? `<div class="leader-cards" role="group" aria-label="Current leaders slide ${currentLeaderSlide + 1} of ${leaderSlideCount}">${visibleLeadingTeams.map((team) => `
+          <article class="leader-card top-team">
+            <div class="leader-card-heading">
+              <span class="leader-card-label">${leadingTeams.length > 1 ? 'Tied for first' : 'Current leader'}</span>
+              <span class="team-stat-rate">${formatWinRate(team.wins, team.played)}</span>
+            </div>
+            <div class="team-stat-name">🏆 ${escapeHtml(team.names.join(' & '))}</div>
+            <div class="team-stat-meta">${team.wins} W · ${team.losses} L · ${team.draws} D · ${team.played} played</div>
+          </article>
+        `).join('')}</div>
+        ${leaderSlideCount > 1 ? `
+          <div class="leader-slide-controls" aria-label="Current leaders pages">
+            <button class="secondary" type="button" data-leader-slide="-1" aria-label="Previous leaders slide" ${currentLeaderSlide === 0 ? 'disabled' : ''}>Previous</button>
+            <span class="leader-slide-status" aria-live="polite">Slide ${currentLeaderSlide + 1} of ${leaderSlideCount}</span>
+            <button class="secondary" type="button" data-leader-slide="1" aria-label="Next leaders slide" ${currentLeaderSlide === leaderSlideCount - 1 ? 'disabled' : ''}>Next</button>
+          </div>
+        ` : ''}`
+    : '<div class="empty-state">Current leaders will appear after a team completes a match.</div>';
+
+  elements.categoryHistoryStandings.innerHTML = renderMatchCategoryCards(state.history);
+
+  elements.teamStatsList.innerHTML = rankedTeams.length
+    ? `${visibleRankedTeams.map((team, index) => `
+        <div class="team-stat-row ${team.winRate === rankedTeams[0].winRate ? 'top-team' : ''}">
+          <div>
+            <div class="team-stat-name"><span class="team-standing-rank">#${firstTeamIndex + index + 1}</span>${team.winRate === rankedTeams[0].winRate ? '🏆 ' : ''}${escapeHtml(team.names.join(' & '))}</div>
+            <div class="team-stat-meta">${team.wins} W · ${team.losses} L · ${team.draws} D · ${team.played} played</div>
+          </div>
+          <div class="team-stat-rate">${formatWinRate(team.wins, team.played)}</div>
+        </div>
+      `).join('')}
+      ${teamStandingsSlideCount > 1 ? `
+        <div class="team-standings-controls" role="group" aria-label="Team standings slides">
+          <button class="secondary" type="button" data-team-standings-slide="-1" aria-label="Previous team standings slide" ${currentTeamStandingsSlide === 0 ? 'disabled' : ''}>Previous</button>
+          <span class="team-standings-slide-status" aria-live="polite">Slide ${currentTeamStandingsSlide + 1} of ${teamStandingsSlideCount}</span>
+          <button class="secondary" type="button" data-team-standings-slide="1" aria-label="Next team standings slide" ${currentTeamStandingsSlide === teamStandingsSlideCount - 1 ? 'disabled' : ''}>Next</button>
+        </div>
+      ` : ''}`
+    : '<div class="empty-state">Team win rates will appear after the first completed match.</div>';
+
+  elements.sessionArchiveList.innerHTML = state.pastSessions.length
+    ? `<div class="section-heading"><div><h3>Previous sessions</h3></div></div>${state.pastSessions.slice().reverse().map((session, index) => {
+      const sessionIndex = state.pastSessions.length - index - 1;
+      const slideContext = `archive-${sessionIndex}`;
+      const teams = Array.isArray(session.teams) ? session.teams : [];
+      const winners = teams.filter((team) => team.winRate === teams[0]?.winRate);
+      const winnerLabel = winners.length
+        ? winners.map((team) => escapeHtml(team.names.join(' & '))).join('; ')
+        : 'No completed team matches';
+      const matches = Array.isArray(session.history)
+        ? session.history.length
+          ? `<div class="match-category-grid recent-results-grid" data-archive-match-history="${sessionIndex}">${renderMatchCategoryCards(session.history, getArchivedMatchHistorySlides(sessionIndex), slideContext)}</div>`
+          : '<div class="empty-state">No matches were recorded in this session.</div>'
+        : '<div class="empty-state">Match history was not saved for this archived session.</div>';
+      return `<details class="archived-session">
+        <summary class="team-stat-row archive-summary">
+          <div><div class="team-stat-name">Session ${state.pastSessions.length - index}</div><div class="team-stat-meta">${session.completedMatches} matches · ended ${escapeHtml(new Date(session.endedAt).toLocaleString())} · top: ${winnerLabel}</div></div>
+          <span class="archive-toggle" aria-hidden="true">⌄</span>
+        </summary>
+        <div class="archive-match-list">${matches}</div>
+      </details>`;
+    }).join('')}`
+    : '';
+
+  elements.randomTeamStatsSection.hidden = state.session.active;
+  elements.randomTeamStatsList.innerHTML = rankedTeams.length
+    ? `<table class="player-stats-table">
+      <thead><tr><th scope="col">Random team</th><th scope="col">Played</th><th scope="col">Wins</th><th scope="col">Losses</th><th scope="col">Draws</th><th scope="col">Win rate</th></tr></thead>
+      <tbody>${rankedTeams.map((team) => `
+        <tr><td>${escapeHtml(team.names.join(' & '))}</td><td>${team.played}</td><td>${team.wins}</td><td>${team.losses}</td><td>${team.draws}</td><td>${formatWinRate(team.wins, team.played)}</td></tr>
+      `).join('')}</tbody>
+    </table>`
+    : '<div class="empty-state">No randomized teams completed a match in this session.</div>';
+
+  elements.playerStatsSection.hidden = state.session.active;
+  const playerStats = state.players.map((player) => ({
+    ...player,
+    wins: Number.isInteger(player.wins) && player.wins >= 0 ? player.wins : 0,
+    losses: Number.isInteger(player.losses) && player.losses >= 0 ? player.losses : 0,
+    draws: Number.isInteger(player.draws) && player.draws >= 0 ? player.draws : 0,
+    played: gamesPlayed(player)
+  })).sort((first, second) => first.played - second.played || first.name.localeCompare(second.name));
+  elements.playerStatsList.innerHTML = playerStats.length
+    ? `<table class="player-stats-table">
+      <thead><tr><th scope="col">Player</th><th scope="col">Played</th><th scope="col">Wins</th><th scope="col">Losses</th><th scope="col">Draws</th><th scope="col">Win rate</th></tr></thead>
+      <tbody>${playerStats.map((player) => `
+        <tr><td>${escapeHtml(player.name)}</td><td>${player.played}</td><td>${player.wins}</td><td>${player.losses}</td><td>${player.draws}</td><td>${formatWinRate(player.wins, player.played)}</td></tr>
+      `).join('')}</tbody>
+    </table>`
+    : '<div class="empty-state">No players were registered for this session.</div>';
+
+  elements.endSessionButton.hidden = !state.session.active;
+  elements.newSessionButton.hidden = state.session.active;
+  elements.courtsGrid.querySelectorAll('[data-action="draw-match"]').forEach((button) => {
+    button.disabled = button.disabled || !state.session.active;
+  });
+  elements.courtsGrid.querySelectorAll('[data-action="balanced-match"]').forEach((button) => {
+    button.disabled = button.disabled || !state.session.active;
+  });
+  elements.courtsGrid.querySelectorAll('[data-action="manual-match"]').forEach((button) => {
+    button.disabled = button.disabled || !state.session.active;
+  });
+  elements.courtsGrid.querySelectorAll('[data-action="category-match"]').forEach((button) => {
+    button.disabled = button.disabled || !state.session.active;
+  });
+  elements.registrationForm.querySelector('button[type="submit"]').disabled = !state.session.active;
+  elements.playerList.querySelectorAll('[data-action="remove-player"]').forEach((button) => {
+    button.disabled = button.disabled || !state.session.active;
+  });
+}
+
+function renderStats() {
+  elements.registeredCount.textContent = state.players.length;
+  elements.waitingCount.textContent = getAvailablePlayers(-1).length;
+  elements.completedCount.textContent = state.completedMatches;
+  elements.activeCourtCount.textContent = `${state.courts.filter((court) => court.match).length} / 3`;
+}
+
+function renderAll() {
+  applySettings();
+  renderPlayers();
+  renderCourts();
+  renderHistory();
+  renderStats();
+  renderSession();
+}
+
+function updateScoreRowVisibility() {
+  document.querySelectorAll('[data-score-form]').forEach((form) => {
+    const court = state.courts[Number(form.dataset.scoreForm)];
+    if (!court?.match) return;
+    const scores = [1, 2].map((setNumber) => [0, 1].map((teamNumber) => {
+      const input = form.querySelector(`[data-score-set="${setNumber}"][data-score-team="${teamNumber}"]`);
+      return input?.value.trim() === '' ? null : Number(input?.value);
+    }));
+    const winners = [1, 2].map((setNumber, index) => {
+      const override = form.querySelector(`[data-set-winner="${setNumber}"]`)?.value;
+      if (override === '0' || override === '1') return Number(override);
+      const [sideA, sideB] = scores[index];
+      if (!Number.isInteger(sideA) || !Number.isInteger(sideB) || sideA === sideB) return null;
+      return sideA > sideB ? 0 : 1;
+    });
+    const split = winners[0] !== null && winners[1] !== null && winners[0] !== winners[1];
+    court.match.thirdSetVisible = state.settings.thirdSet && split;
+    const thirdSetRow = form.querySelector('.third-set-row');
+    thirdSetRow.hidden = !court.match.thirdSetVisible;
+  });
+}
+
+function randomize(values) {
+  const shuffled = [...values];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const otherIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[otherIndex]] = [shuffled[otherIndex], shuffled[index]];
+  }
+  return shuffled;
+}
+
+function drawMatch(courtIndex, balancedPull = false) {
+  if (!state.session.active) {
+    setNotice('Start a new session before drawing another match.', true);
+    return;
+  }
+  const court = state.courts[courtIndex];
+  if (!court || court.match) return;
+  const available = getAvailablePlayers(courtIndex);
+  if (available.length < 4) {
+    setNotice('Make four players available before drawing a doubles match.', true);
+    return;
+  }
+  const queuePlayers = selectQueuePlayers(available);
+  if (queuePlayers.length < 4) {
+    setNotice('Queue draws need four eligible players.', true);
+    return;
+  }
+  let teams;
+  let matchupMessage;
+  if (balancedPull) {
+    const skillRank = { Beginner: 1, Intermediate: 2, Advance: 3 };
+    const matchPlayers = randomize(queuePlayers).sort((first, second) => skillRank[first.skillLevel] - skillRank[second.skillLevel]);
+    teams = [
+      { playerIds: [matchPlayers[0].id, matchPlayers[3].id] },
+      { playerIds: [matchPlayers[1].id, matchPlayers[2].id] }
+    ];
+    matchupMessage = 'Balanced pull';
+  } else {
+    teams = [
+      { playerIds: queuePlayers.slice(0, 2).map((player) => player.id) },
+      { playerIds: queuePlayers.slice(2, 4).map((player) => player.id) }
+    ];
+    matchupMessage = 'Queue order';
+  }
+  court.match = {
+    teams,
+    thirdSetVisible: false
+  };
+  const saved = saveState();
+  renderAll();
+  if (saved) setNotice(`${matchupMessage} matchup ready on ${state.settings.courtNames[courtIndex]}.`);
+}
+
+function drawCategoryMatch(courtIndex, skillLevel) {
+  if (!state.session.active) {
+    setNotice('Start a new session before drawing another match.', true);
+    return;
+  }
+  if (!SKILL_LEVELS.includes(skillLevel)) return;
+  const court = state.courts[courtIndex];
+  if (!court || court.match) return;
+
+  const categoryPlayers = randomize(getAvailablePlayers(courtIndex)
+    .filter((player) => player.skillLevel === skillLevel));
+  if (categoryPlayers.length < 4) {
+    setNotice(`Four available ${skillLevel} players are needed for a category match.`, true);
+    return;
+  }
+
+  const selectedPlayers = randomize(categoryPlayers.slice(0, 4));
+  court.match = {
+    teams: [
+      { playerIds: selectedPlayers.slice(0, 2).map((player) => player.id) },
+      { playerIds: selectedPlayers.slice(2, 4).map((player) => player.id) }
+    ],
+    thirdSetVisible: false
+  };
+  const saved = saveState();
+  renderAll();
+  if (saved) setNotice(`${skillLevel} category matchup ready on ${state.settings.courtNames[courtIndex]}.`);
+}
+
+function startManualMatch(courtIndex) {
+  if (!state.session.active) {
+    setNotice('Start a new session before setting up another match.', true);
+    return;
+  }
+  const court = state.courts[courtIndex];
+  if (!court || court.match) return;
+  const available = selectQueuePlayers(getAvailablePlayers(courtIndex));
+  const manualAvailable = getManualCourtPlayers(courtIndex);
+  if (manualAvailable.length < 4) {
+    setNotice('Four players, including players marked left, are needed to set up a doubles match.', true);
+    return;
+  }
+  const leftPlayers = queueOrder(manualAvailable.filter((player) => player.left));
+  const ids = [...available, ...leftPlayers].slice(0, 4).map((player) => player.id);
+  court.match = {
+    teams: [{ playerIds: ids.slice(0, 2) }, { playerIds: ids.slice(2, 4) }],
+    thirdSetVisible: false
+  };
+  editingCourtIndex = courtIndex;
+  manualDraftCourtIndex = courtIndex;
+  renderCourts();
+}
+
+function saveEditedTeams(courtIndex) {
+  const court = state.courts[courtIndex];
+  if (!court?.match || editingCourtIndex !== courtIndex) return;
+  const previousPlayerIds = court.match.teams.flatMap((team) => team.playerIds);
+  const playerIds = [0, 1].map((side) => [0, 1].map((slot) => {
+    const select = elements.courtsGrid.querySelector(`[data-team-editor="${courtIndex}"] [data-team-slot="${side}-${slot}"]`);
+    return select?.value || '';
+  }));
+  const flattenedIds = playerIds.flat();
+  const availableIds = new Set(getManualCourtPlayers(courtIndex).map((player) => player.id));
+  if (flattenedIds.some((id) => !id) || new Set(flattenedIds).size !== 4
+    || flattenedIds.some((id) => !availableIds.has(id))) {
+    setNotice('Choose four different players who are available for this court.', true);
+    return;
+  }
+  court.match.teams = playerIds.map((ids) => ({ playerIds: ids }));
+  court.match.thirdSetVisible = false;
+  editingCourtIndex = -1;
+  manualDraftCourtIndex = -1;
+  const saved = saveState();
+  renderAll();
+  if (saved) {
+    const freedPlayers = previousPlayerIds
+      .filter((id) => !flattenedIds.includes(id))
+      .map((id) => playerById(id)?.name)
+      .filter(Boolean);
+    setNotice(freedPlayers.length
+      ? `${freedPlayers.join(', ')} freed from the match. The new lineup is ready on ${state.settings.courtNames[courtIndex]}.`
+      : `Lineup saved on ${state.settings.courtNames[courtIndex]}.`);
+  }
+}
+
+function replaceMatchPlayer(courtIndex, teamSide, playerSlot, replacementId, enforceFairPlay = false) {
+  if (!state.session.active) {
+    setNotice('Start a new session before changing players in a match.', true);
+    return;
+  }
+  const match = state.courts[courtIndex]?.match;
+  if (!match || ![0, 1].includes(teamSide) || ![0, 1].includes(playerSlot)) {
+    setNotice('This match player is no longer available to change.', true);
+    renderAll();
+    return;
+  }
+  const currentPlayer = playerById(match.teams[teamSide].playerIds[playerSlot]);
+  if (!currentPlayer) {
+    setNotice('The current match player could not be found.', true);
+    renderAll();
+    return;
+  }
+  const replacementCandidates = enforceFairPlay
+    ? getEligibleReplacements(currentPlayer, courtIndex, match)
+    : getAvailableReplacementCandidates(currentPlayer, courtIndex, match);
+  const replacement = replacementCandidates
+    .find((player) => player.id === replacementId);
+  if (!replacement) {
+    setNotice(enforceFairPlay
+      ? 'Auto-swaps require a lower-played waiting player in the same skill category.'
+      : 'Choose an available waiting player who is not already in this match.', true);
+    renderCourts();
+    return;
+  }
+
+  match.teams[teamSide].playerIds[playerSlot] = replacement.id;
+  const saved = saveState();
+  renderAll();
+  if (saved) {
+    setNotice(`${currentPlayer.name} replaced by ${replacement.name} on Side ${teamSide === 0 ? 'A' : 'B'}.`);
+  }
+}
+
+function cancelTeamEdit(courtIndex) {
+  if (editingCourtIndex !== courtIndex) return;
+  if (manualDraftCourtIndex === courtIndex) {
+    state.courts[courtIndex] = createEmptyCourt();
+    manualDraftCourtIndex = -1;
+  }
+  editingCourtIndex = -1;
+  renderAll();
+}
+
+function cancelMatch(courtIndex) {
+  const court = state.courts[courtIndex];
+  if (!court?.match) return;
+  if (!window.confirm(`Cancel the match on ${state.settings.courtNames[courtIndex]}? No stats will be recorded.`)) return;
+  state.courts[courtIndex] = createEmptyCourt();
+  const saved = saveState();
+  renderAll();
+  if (saved) setNotice('Match cancelled. Players are available for another draw.');
+}
+
+function readSetScores(form, setNumber) {
+  return [0, 1].map((teamNumber) => {
+    const field = form.querySelector(`[data-score-set="${setNumber}"][data-score-team="${teamNumber}"]`);
+    return field && field.value.trim() !== '' ? Number(field.value) : null;
+  });
+}
+
+function readSetResult(form, setNumber) {
+  const override = form.querySelector(`[data-set-winner="${setNumber}"]`)?.value;
+  const scores = readSetScores(form, setNumber);
+  if (override === '0' || override === '1') {
+    return { winner: Number(override), scores, overridden: true };
+  }
+  return { winner: setWinner(scores, setNumber), scores, overridden: false };
+}
+
+function formatSetResult(set, index) {
+  if (!set.overridden) return `${set.scores[0]}-${set.scores[1]}`;
+  const selectedSide = set.winner === 0 ? 'Side A' : 'Side B';
+  const enteredScores = set.scores.every((score) => score !== null)
+    ? `; entered score ${set.scores[0]}-${set.scores[1]}`
+    : '';
+  return `Set ${index + 1}: ${selectedSide} selected by Queue Master${enteredScores}`;
+}
+
+function setWinner(scores, setNumber) {
+  const [sideA, sideB] = scores;
+  if (!Number.isSafeInteger(sideA) || !Number.isSafeInteger(sideB) || sideA < 0 || sideB < 0) {
+    throw new Error(`Enter a non-negative whole-number score for Set ${setNumber}.`);
+  }
+  if (sideA === sideB) throw new Error(`Set ${setNumber} cannot end in a tie.`);
+
+  const target = state.settings.targetPoints;
+  const winBy = state.settings.winBy;
+  const cap = state.settings.pointCap;
+  const winnerScore = Math.max(sideA, sideB);
+  const loserScore = Math.min(sideA, sideB);
+  if (cap > 0 && winnerScore > cap) throw new Error(`Set ${setNumber} cannot exceed the ${cap}-point cap.`);
+  const reachedCap = cap > 0 && winnerScore === cap;
+  if (winnerScore < target || (winnerScore - loserScore < winBy && !(reachedCap && winnerScore - loserScore >= 1))) {
+    const requirement = reachedCap ? 'a one-point lead at the point cap' : `at least ${target} points and a ${winBy}-point lead`;
+    throw new Error(`Set ${setNumber} must be won with ${requirement}.`);
+  }
+  return sideA > sideB ? 0 : 1;
+}
+
+function finishMatch(form, courtIndex, declaredWinner = null) {
+  const court = state.courts[courtIndex];
+  if (!court?.match) return;
+  if (!state.session.active) {
+    setNotice('The session has ended. Start a new session before recording another result.', true);
+    return;
+  }
+  try {
+    let matchWinner;
+    let scoreText;
+    if (declaredWinner === 0 || declaredWinner === 1) {
+      matchWinner = declaredWinner;
+      scoreText = `Manual winner: Side ${declaredWinner === 0 ? 'A' : 'B'} (scores not recorded)`;
+    } else {
+      const firstTwo = [readSetResult(form, 1), readSetResult(form, 2)];
+      const winners = firstTwo.map((set) => set.winner);
+      let sets = [...firstTwo];
+      if (winners[0] === winners[1]) {
+        matchWinner = winners[0];
+      } else if (state.settings.thirdSet) {
+        const third = readSetResult(form, 3);
+        sets.push(third);
+        matchWinner = third.winner;
+      } else {
+        matchWinner = null;
+      }
+      scoreText = sets.map(formatSetResult).join(', ');
+    }
+
+    const teamNamesBySide = court.match.teams.map(teamNames);
+    court.match.teams.forEach((team, side) => {
+      const key = [...team.playerIds].sort().join('|');
+      const record = state.teamStats[key] || {
+        playerIds: [...team.playerIds],
+        names: team.playerIds.map((id) => playerById(id)?.name || 'Removed player'),
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        played: 0
+      };
+      record.played += 1;
+      if (matchWinner === null) {
+        record.draws += 1;
+      } else if (matchWinner === side) {
+        record.wins += 1;
+      } else {
+        record.losses += 1;
+      }
+      state.teamStats[key] = record;
+    });
+    for (const team of court.match.teams) {
+      for (const id of team.playerIds) {
+        const player = playerById(id);
+        if (player) {
+          player.played = gamesPlayed(player) + 1;
+          player.queueGames = queueGames(player) + 1;
+          if (matchWinner === null) player.draws = (player.draws || 0) + 1;
+        }
+      }
+    }
+    let result;
+    if (matchWinner === null) {
+      result = 'Draw';
+    } else {
+      result = `${teamNamesBySide[matchWinner]} won`;
+      court.match.teams[matchWinner].playerIds.forEach((id) => {
+        const player = playerById(id);
+        if (player) player.wins += 1;
+      });
+      court.match.teams[1 - matchWinner].playerIds.forEach((id) => {
+        const player = playerById(id);
+        if (player) player.losses += 1;
+      });
+    }
+    state.history.unshift({
+      courtName: state.settings.courtNames[courtIndex],
+      teamA: teamNamesBySide[0],
+      teamB: teamNamesBySide[1],
+      matchCategory: getMatchSkillCategory(court.match),
+      score: scoreText,
+      result,
+      completedAt: new Date().toISOString()
+    });
+    state.completedMatches += 1;
+    state.players.forEach((player) => {
+      if (Number.isInteger(player.skipUntilCompletedMatches)
+        && player.skipUntilCompletedMatches <= state.completedMatches) {
+        player.skipUntilCompletedMatches = null;
+      }
+    });
+    state.courts[courtIndex] = createEmptyCourt();
+    const saved = saveState();
+    renderAll();
+    if (saved) {
+      setNotice(declaredWinner === 0 || declaredWinner === 1
+        ? `Side ${declaredWinner === 0 ? 'A' : 'B'} recorded as the winner. Player stats updated.`
+        : matchWinner === null
+          ? 'Match recorded as a draw. Player match counts were updated.'
+          : 'Match result saved and player stats updated.');
+    }
+  } catch (error) {
+    setNotice(error.message, true);
+  }
+}
+
+function handleRegistration(event) {
+  event.preventDefault();
+  if (!state.session.active) {
+    setNotice('Start a new session before registering players.', true);
+    return;
+  }
+  const name = elements.playerName.value.trim();
+  if (!name) return;
+  if (state.players.some((player) => player.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+    setNotice('A player with that name is already registered.', true);
+    return;
+  }
+  const requestedQueueGroup = elements.playerQueueGroupInput.value;
+  const rotationHasStarted = state.completedMatches > 0
+    || state.courts.some((court) => court.match)
+    || state.players.some((player) => player.queueGroup !== 'late' && gamesPlayed(player) > 0);
+  const queueGroup = requestedQueueGroup === 'auto'
+    ? rotationHasStarted ? 'late' : 'first'
+    : requestedQueueGroup;
+  if (queueGroup !== 'first' && queueGroup !== 'late') {
+    setNotice('Choose Automatic, First Comers, or Late Comers for the queue group.', true);
+    return;
+  }
+  const isLateComer = queueGroup === 'late';
+  const occupiedPlayerIds = getOccupiedPlayerIds();
+  const queueGamesAtJoin = Math.max(0, ...state.players.map((player) => (
+    queueGames(player) + (occupiedPlayerIds.has(player.id) ? 1 : 0)
+  )));
+  state.players.push({
+    id: crypto.randomUUID(),
+    name,
+    skillLevel: elements.playerSkillInput.value,
+    queueGroup,
+    left: false,
+    lateComerReleased: false,
+    queueGames: queueGamesAtJoin,
+    skipUntilCompletedMatches: null,
+    wins: 0,
+    losses: 0,
+    draws: 0,
+    played: 0
+  });
+  state.players = sortPlayersBySkill(state.players);
+  elements.registrationForm.reset();
+  const saved = saveState();
+  renderAll();
+  elements.playerName.focus();
+  if (saved) {
+    setNotice(isLateComer
+      ? `${name} registered as ${state.settings.lateComerLabel}.`
+      : `${name} registered as ${state.settings.firstComerLabel}.`);
+  }
+}
+
+function endSession() {
+  if (!state.session.active) return;
+  if (state.courts.some((court) => court.match)) {
+    setNotice('Finish or cancel every active court match before ending the session.', true);
+    return;
+  }
+  if (!window.confirm('End this session and show team standings and player statistics?')) return;
+
+  state.session = { ...state.session, active: false, endedAt: new Date().toISOString() };
+  state.pastSessions.push({
+    startedAt: state.session.startedAt,
+    endedAt: state.session.endedAt,
+    completedMatches: state.completedMatches,
+    history: state.history.map((item) => ({ ...item })),
+    teams: getRankedTeamStats().map((team) => ({
+      names: [...team.names],
+      wins: team.wins,
+      losses: team.losses,
+      draws: team.draws,
+      played: team.played,
+      winRate: team.winRate
+    }))
+  });
+  const saved = saveState();
+  renderAll();
+  if (saved) setNotice('Session ended. Team and player win rates are shown in the standings.');
+}
+
+function startNewSession() {
+  if (state.session.active) return;
+  if (!window.confirm('Start a new session? Current player records, results, and team win rates will reset; previous session results and match histories will remain in the archive.')) return;
+
+  state.players.forEach((player) => {
+    player.wins = 0;
+    player.losses = 0;
+    player.draws = 0;
+    player.played = 0;
+    player.addedGames = 0;
+    player.queueGames = 0;
+    player.skipUntilCompletedMatches = null;
+    player.left = false;
+    player.queueGroup = 'first';
+    player.lateComerReleased = false;
+  });
+  state.history = [];
+  state.completedMatches = 0;
+  state.teamStats = {};
+  state.courts = [createEmptyCourt(), createEmptyCourt(), createEmptyCourt()];
+  state.session = {
+    active: true,
+    startedAt: new Date().toISOString(),
+    endedAt: null,
+    firstComerMatchComplete: false
+  };
+  const saved = saveState();
+  renderAll();
+  if (saved) setNotice('New session started. Player and team records are reset.');
+}
+
+function handleSettings(event) {
+  event.preventDefault();
+  const targetPoints = Number(elements.targetPointsInput.value);
+  const winBy = Number(elements.winByInput.value);
+  const pointCap = Number(elements.pointCapInput.value);
+  const firstComerLabel = elements.firstComerLabelInput.value.trim();
+  const lateComerLabel = elements.lateComerLabelInput.value.trim();
+  const firstComerIcon = elements.firstComerIconInput.value.trim().slice(0, 6);
+  const lateComerIcon = elements.lateComerIconInput.value.trim().slice(0, 6);
+  if (!Number.isInteger(targetPoints) || targetPoints < 1 || targetPoints > 199
+    || !Number.isInteger(winBy) || winBy < 1 || winBy > 20
+    || !Number.isInteger(pointCap) || pointCap < 0 || pointCap > 208
+    || (pointCap > 0 && pointCap < targetPoints)) {
+    setNotice('Check scoring settings: use whole numbers, and make the point cap at least the target or set it to 0.', true);
+    return;
+  }
+  if (!firstComerLabel || !lateComerLabel
+    || firstComerLabel.toLocaleLowerCase() === lateComerLabel.toLocaleLowerCase()) {
+    setNotice('Enter two different labels for First Comers and Late Comers.', true);
+    return;
+  }
+  state.settings = {
+    ...state.settings,
+    eventName: elements.eventNameInput.value.trim() || 'Badminton Queue',
+    masterName: elements.masterNameInput.value.trim() || 'Queue Master',
+    firstComerLabel,
+    lateComerLabel,
+    firstComerIcon: firstComerIcon || DEFAULT_FIRST_COMER_ICON,
+    lateComerIcon: lateComerIcon || DEFAULT_LATE_COMER_ICON,
+    targetPoints,
+    winBy,
+    pointCap,
+    thirdSet: elements.thirdSetInput.checked,
+    courtNames: elements.courtNameInputs.map((input, index) => input.value.trim() || `Court ${index + 1}`),
+    colors: {
+      page: elements.pageColorInput.value,
+      panel: elements.panelColorInput.value,
+      accent: elements.accentColorInput.value
+    }
+  };
+  const saved = saveState();
+  renderAll();
+  if (saved) setNotice('Queue setup saved.');
+}
+
+elements.registrationForm.addEventListener('submit', handleRegistration);
+elements.settingsForm.addEventListener('submit', handleSettings);
+document.querySelector('.primary-nav').addEventListener('click', (event) => {
+  const link = event.target.closest('a[href="#settings-section"]');
+  if (link) document.getElementById('settings-section').open = true;
+});
+
+elements.playerList.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-action]');
+  if (!button || button.disabled) return;
+  if (button.dataset.action === 'move-player-up' || button.dataset.action === 'move-player-down') {
+    if (!state.session.active) return;
+    const index = state.players.findIndex((player) => player.id === button.dataset.playerId);
+    const direction = button.dataset.action === 'move-player-up' ? -1 : 1;
+    const targetIndex = index + direction;
+    if (index < 0 || targetIndex < 0 || targetIndex >= state.players.length
+      || state.players[targetIndex].skillLevel !== state.players[index].skillLevel) return;
+    [state.players[index], state.players[targetIndex]] = [state.players[targetIndex], state.players[index]];
+    const saved = saveState();
+    renderAll();
+    if (saved) setNotice(`${state.players[targetIndex].name} moved ${direction < 0 ? 'earlier' : 'later'} in the queue.`);
+    return;
+  }
+  if (button.dataset.action === 'credit-game') {
+    if (!state.session.active) return;
+    const player = playerById(button.dataset.playerId);
+    if (!player || getOccupiedPlayerIds().has(player.id)) return;
+    player.played = gamesPlayed(player) + 1;
+    player.addedGames = (player.addedGames || 0) + 1;
+    player.queueGames = queueGames(player) + 1;
+    const saved = saveState();
+    renderAll();
+    if (saved) setNotice(`${player.name} credited with a game played on another court.`);
+    return;
+  }
+  if (button.dataset.action === 'undo-added-game') {
+    if (!state.session.active) return;
+    const player = playerById(button.dataset.playerId);
+    if (!player || !player.addedGames || getOccupiedPlayerIds().has(player.id)) return;
+    player.addedGames -= 1;
+    player.played = Math.max(0, gamesPlayed(player) - 1);
+    player.queueGames = Math.max(0, queueGames(player) - 1);
+    const saved = saveState();
+    renderAll();
+    if (saved) setNotice(`One added play removed for ${player.name}. Match results were not changed.`);
+    return;
+  }
+  if (button.dataset.action === 'skip-turn') {
+    if (!state.session.active) return;
+    const player = playerById(button.dataset.playerId);
+    if (!player || getOccupiedPlayerIds().has(player.id)) return;
+    player.skipUntilCompletedMatches = isTemporarilyUnavailable(player)
+      ? null
+      : state.completedMatches + 1;
+    const saved = saveState();
+    renderAll();
+    if (saved) setNotice(player.skipUntilCompletedMatches
+      ? `${player.name} will skip draws until the next match finishes.`
+      : `${player.name} is back in the queue.`);
+    return;
+  }
+  if (button.dataset.action === 'toggle-player-left') {
+    if (!state.session.active) return;
+    const player = playerById(button.dataset.playerId);
+    if (!player || getOccupiedPlayerIds().has(player.id)) return;
+    player.left = !player.left;
+    const saved = saveState();
+    renderAll();
+    if (saved) setNotice(player.left
+      ? `${player.name} marked as left and removed from automatic draws.`
+      : `${player.name} returned to the queue.`);
+    return;
+  }
+  if (button.dataset.action !== 'remove-player') return;
+  const player = playerById(button.dataset.playerId);
+  if (!player) return;
+  state.players = state.players.filter((item) => item.id !== player.id);
+  const saved = saveState();
+  renderAll();
+  if (saved) setNotice(`${player.name} removed.`);
+});
+
+elements.playerList.addEventListener('change', (event) => {
+  const select = event.target.closest('[data-action="set-player-level"]');
+  if (!select) return;
+  const player = playerById(select.dataset.playerId);
+  if (!player || !SKILL_LEVELS.includes(select.value)) return;
+  player.skillLevel = select.value;
+  state.players = sortPlayersBySkill(state.players);
+  const saved = saveState();
+  renderAll();
+  if (saved) setNotice(`${player.name}'s skill level set to ${player.skillLevel}.`);
+});
+
+elements.courtsGrid.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-action]');
+  if (!button) return;
+  const courtIndex = Number(button.dataset.courtIndex);
+  if (button.dataset.action === 'draw-match') drawMatch(courtIndex);
+  if (button.dataset.action === 'balanced-match') drawMatch(courtIndex, true);
+  if (button.dataset.action === 'category-match') drawCategoryMatch(courtIndex, button.dataset.skillLevel);
+  if (button.dataset.action === 'manual-match') startManualMatch(courtIndex);
+  if (button.dataset.action === 'auto-replace-player') {
+    const teamSide = Number(button.dataset.teamSide);
+    const playerSlot = Number(button.dataset.playerSlot);
+    const match = state.courts[courtIndex]?.match;
+    const currentPlayer = match && [0, 1].includes(teamSide) && [0, 1].includes(playerSlot)
+      ? playerById(match.teams[teamSide].playerIds[playerSlot])
+      : null;
+    const replacement = currentPlayer && match
+      ? getEligibleReplacements(currentPlayer, courtIndex, match)[0]
+      : null;
+    if (!replacement) {
+      setNotice('No lower-played waiting player in the same skill category is available.', true);
+      return;
+    }
+    replaceMatchPlayer(courtIndex, teamSide, playerSlot, replacement.id, true);
+  }
+  if (button.dataset.action === 'save-teams') saveEditedTeams(courtIndex);
+  if (button.dataset.action === 'cancel-edit') cancelTeamEdit(courtIndex);
+  if (button.dataset.action === 'cancel-match') cancelMatch(courtIndex);
+  if (button.dataset.action === 'declare-winner') {
+    const form = button.closest('[data-score-form]');
+    if (form) finishMatch(form, courtIndex, Number(button.dataset.winnerSide));
+  }
+});
+
+elements.courtsGrid.addEventListener('input', (event) => {
+  if (event.target.matches('[data-score-set]')) updateScoreRowVisibility();
+});
+
+elements.courtsGrid.addEventListener('change', (event) => {
+  const select = event.target.closest('[data-action="choose-replacement-player"]');
+  if (select) {
+    if (!select.value) return;
+    replaceMatchPlayer(
+      Number(select.dataset.courtIndex),
+      Number(select.dataset.teamSide),
+      Number(select.dataset.playerSlot),
+      select.value
+    );
+    return;
+  }
+  if (event.target.matches('[data-set-winner]')) updateScoreRowVisibility();
+});
+
+elements.courtsGrid.addEventListener('submit', (event) => {
+  const form = event.target.closest('[data-score-form]');
+  if (!form) return;
+  event.preventDefault();
+  finishMatch(form, Number(form.dataset.scoreForm));
+});
+
+elements.currentLeadersList.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-leader-slide]');
+  if (!button) return;
+  currentLeaderSlide += Number(button.dataset.leaderSlide);
+  renderSession();
+});
+
+elements.teamStatsList.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-team-standings-slide]');
+  if (!button) return;
+  const direction = Number(button.dataset.teamStandingsSlide);
+  if (![-1, 1].includes(direction)) return;
+  currentTeamStandingsSlide += direction;
+  renderSession();
+});
+
+function handleMatchHistorySlideClick(event) {
+  const button = event.target.closest('[data-match-history-slide]');
+  if (!button) return;
+  const context = button.dataset.matchHistoryContext;
+  const category = button.dataset.matchHistoryCategory;
+  const direction = Number(button.dataset.matchHistorySlide);
+  if (!MATCH_HISTORY_CATEGORIES.some(({ key }) => key === category)
+    || ![-1, 1].includes(direction)) return;
+
+  if (context === 'current') {
+    currentMatchHistorySlides[category] += direction;
+    renderMatchHistoryViews();
+    return;
+  }
+
+  const archiveContext = /^archive-(\d+)$/.exec(context || '');
+  if (!archiveContext) return;
+  const sessionIndex = Number(archiveContext[1]);
+  const archivedSession = state.pastSessions[sessionIndex];
+  const historyContainer = elements.sessionArchiveList.querySelector(
+    `[data-archive-match-history="${sessionIndex}"]`
+  );
+  if (!archivedSession || !Array.isArray(archivedSession.history) || !historyContainer) return;
+
+  const slideState = getArchivedMatchHistorySlides(sessionIndex);
+  slideState[category] += direction;
+  historyContainer.innerHTML = renderMatchCategoryCards(
+    archivedSession.history,
+    slideState,
+    context
+  );
+}
+
+elements.historyList.addEventListener('click', handleMatchHistorySlideClick);
+elements.categoryHistoryStandings.addEventListener('click', handleMatchHistorySlideClick);
+elements.sessionArchiveList.addEventListener('click', handleMatchHistorySlideClick);
+
+elements.clearHistoryButton.addEventListener('click', () => {
+  if (!state.history.length) return;
+  if (!window.confirm('Clear all recent match history? Player statistics will not be changed.')) return;
+  state.history = [];
+  const saved = saveState();
+  renderAll();
+  if (saved) setNotice('Match history cleared. Player statistics were kept.');
+});
+
+elements.clearSessionHistoryButton.addEventListener('click', () => {
+  if (!state.pastSessions.length) {
+    setNotice('There is no archived session history to clear.');
+    return;
+  }
+  if (!window.confirm('Clear all archived session history? Current session results and player statistics will not be changed.')) return;
+  state.pastSessions = [];
+  archivedMatchHistorySlides.clear();
+  const saved = saveState();
+  renderAll();
+  if (saved) setNotice('Archived session history cleared. Current session results were kept.');
+});
+
+elements.endSessionButton.addEventListener('click', endSession);
+elements.newSessionButton.addEventListener('click', startNewSession);
+
+renderAll();
+if (loadError) setNotice('Saved queue data could not be read. A fresh queue has been started.', true);
+
+</script>
+</body>
+</html>
